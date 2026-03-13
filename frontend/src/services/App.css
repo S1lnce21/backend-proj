@@ -1,0 +1,27 @@
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+  border: 1px solid #fcc;
+}
+
+.loading {
+  text-align: center;
+  color: white;
+  font-size: 18px;
+}
+
+.auth-button:disabled,
+.switch-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
