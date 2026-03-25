@@ -28,4 +28,13 @@ export const authAPI = {
   logout: () => api.post('/auth/logout'),
 };
 
+export const postsAPI = {
+  getAllPosts: () => api.get('/posts'),
+  getMyPosts: () => api.get('/posts/my'),
+  getPostById: (id) => api.get(`/posts/${id}`),
+  createPost: (data) => api.post('/posts', data),
+  updatePost: (id, data) => api.put(`/posts/${id}`, data),
+  deletePost: (id) => api.delete(`/posts/${id}`),
+};
+
 export default api;
