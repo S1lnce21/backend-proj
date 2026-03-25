@@ -25,6 +25,7 @@ const PostsManager = ({ user }) => {
       setPosts(response.data.posts);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при загрузке постов');
+      console.error('Error fetching posts:', err);
     } finally {
       setLoading(false);
     }
@@ -32,6 +33,7 @@ const PostsManager = ({ user }) => {
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const response = await postsAPI.createPost(formData);
       setPosts([response.data.post, ...posts]);
@@ -39,11 +41,13 @@ const PostsManager = ({ user }) => {
       setShowForm(false);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при создании поста');
+      console.error('Error creating post:', err);
     }
   };
 
   const handleUpdatePost = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const response = await postsAPI.updatePost(editingPost.id, formData);
       setPosts(posts.map(post => 
@@ -51,24 +55,28 @@ const PostsManager = ({ user }) => {
       ));
       setEditingPost(null);
       setFormData({ title: '', content: '' });
+      setShowForm(false);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при обновлении поста');
+      console.error('Error updating post:', err);
     }
   };
 
   const handleDeletePost = async (id) => {
     if (!window.confirm('Вы уверены, что хотите удалить этот пост?')) return;
+    setError('');
     try {
       await postsAPI.deletePost(id);
       setPosts(posts.filter(post => post.id !== id));
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при удалении поста');
+      console.error('Error deleting post:', err);
     }
   };
 
   const startEdit = (post) => {
     setEditingPost(post);
-    setFormData({ title: post.title, content: post.content });
+    setFormData({ title: post.title, content: post.content || '' });
     setShowForm(true);
   };
 
@@ -145,7 +153,7 @@ const PostsManager = ({ user }) => {
                 <div className="post-meta">
                   <span className="post-author">Автор: {post.author.username}</span>
                   <span className="post-date">
-                    {new Date(post.createdAt).toLocaleDateString()}
+                    {new Date(post.createdAt).toLocaleString()}
                   </span>
                 </div>
               </div>

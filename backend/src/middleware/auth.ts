@@ -21,13 +21,13 @@ export const authenticateToken = (
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
       userId: number;
       email: string;
     };
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ error: "Недействительный или просроченный токен" });
+    return res.status(403).json({ error: "Недействительный токен" });
   }
 };

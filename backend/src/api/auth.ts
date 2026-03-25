@@ -15,7 +15,7 @@ let nextId = 1;
 
 const initTestUser = async () => {
   if (users.length === 0) {
-    const hashedPassword = await bcrypt.hash("123456", 10);
+    const hashedPassword = await bcrypt.hash("TestPass123!", 10);
     users.push({
       id: nextId++,
       username: "testuser",
@@ -23,6 +23,7 @@ const initTestUser = async () => {
       password: hashedPassword,
       createdAt: new Date()
     });
+    console.log("✅ Тестовый пользователь создан: test@test.com / TestPass123!");
   }
 };
 
