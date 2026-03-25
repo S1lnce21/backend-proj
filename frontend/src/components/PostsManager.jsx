@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { postsAPI } from '../services/api';
-import './PostsManager.css';
+import './styles/PostsManager.css';
 
 const PostsManager = ({ user }) => {
   const [posts, setPosts] = useState([]);

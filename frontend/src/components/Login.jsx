@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Auth.css';
+import './styles/Auth.css';
 
 const Login = ({ onSwitch, onLogin }) => {
   const [email, setEmail] = useState('');

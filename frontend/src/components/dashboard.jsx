@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PostsManager from './PostsManager';
 import NewsManager from './NewsManager';
 import ProductsManager from './ProductsManager';
-import './Dashboard.css';
+import './styles/Dashboard.css';
 
 const Dashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('posts');

@@ -13,6 +13,29 @@ interface Post {
 let posts: Post[] = [];
 let nextPostId = 1;
 
+const initTestPosts = () => {
+  if (posts.length === 0) {
+    posts.push({
+      id: nextPostId++,
+      title: "Мой первый пост",
+      content: "Это пример поста с красивым оформлением. Здесь можно писать любой текст.",
+      authorId: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    posts.push({
+      id: nextPostId++,
+      title: "Интересная новость",
+      content: "Сегодня отличный день для создания нового контента!",
+      authorId: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  }
+};
+
+initTestPosts();
+
 const router = express.Router();
 
 router.use(authenticateToken);

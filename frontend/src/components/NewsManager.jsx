@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { newsAPI } from '../services/api';
-import './NewsManager.css';
+import './styles/NewsManager.css';
 
 const NewsManager = ({ user }) => {
   const [news, setNews] = useState([]);
@@ -74,8 +74,11 @@ const NewsManager = ({ user }) => {
     <div className="news-manager">
       <div className="section-header">
         <h2>📰 Новости</h2>
-        <button onClick={() => setShowForm(!showForm)} className="create-btn">
-          {showForm ? 'Отмена' : '+ Добавить новость'}
+        <button 
+          onClick={() => setShowForm(!showForm)} 
+          className="create-news-btn"
+        >
+          {showForm ? '✖ Отмена' : '+ Создать новость'}
         </button>
       </div>
 
@@ -83,42 +86,49 @@ const NewsManager = ({ user }) => {
 
       {showForm && (
         <form onSubmit={editingNews ? handleUpdateNews : handleCreateNews} className="news-form">
-          <h3>{editingNews ? 'Редактировать новость' : 'Создать новость'}</h3>
+          <h3>{editingNews ? '✏️ Редактировать новость' : '✨ Создать новость'}</h3>
           <input
             type="text"
-            placeholder="Заголовок"
+            placeholder="Заголовок новости"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
           />
           <textarea
-            placeholder="Содержание"
+            placeholder="Содержание новости"
             value={formData.content}
             onChange={(e) => setFormData({ ...formData, content: e.target.value })}
             required
-            rows="4"
+            rows="5"
           />
           <input
             type="text"
-            placeholder="URL изображения (опционально)"
+            placeholder="🔗 URL изображения (опционально)"
             value={formData.imageUrl}
             onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
           />
           <div className="form-actions">
-            <button type="submit">{editingNews ? 'Обновить' : 'Создать'}</button>
+            <button type="submit">
+              {editingNews ? '📝 Обновить' : '✅ Создать'}
+            </button>
             <button type="button" onClick={() => {
               setShowForm(false);
               setEditingNews(null);
               setFormData({ title: '', content: '', imageUrl: '' });
-            }}>Отмена</button>
+            }}>
+              ❌ Отмена
+            </button>
           </div>
         </form>
       )}
 
       {loading ? (
-        <div className="loading">Загрузка новостей...</div>
+        <div className="loading">Загрузка новостей</div>
       ) : news.length === 0 ? (
-        <div className="no-items">Новостей пока нет. Добавьте первую!</div>
+        <div className="no-news">
+          Новостей пока нет<br />
+          <small>Нажмите кнопку "Создать новость", чтобы добавить первую!</small>
+        </div>
       ) : (
         <div className="news-list">
           {news.map(item => (
@@ -127,14 +137,18 @@ const NewsManager = ({ user }) => {
               <div className="news-content">
                 <h3>{item.title}</h3>
                 <div className="news-meta">
-                  <span>📅 {new Date(item.createdAt).toLocaleString()}</span>
-                  <span>👤 {item.author.username}</span>
+                  <span>{new Date(item.createdAt).toLocaleDateString('ru-RU')}</span>
+                  <span>{item.author.username}</span>
                 </div>
                 <p>{item.content}</p>
                 {item.authorId === user?.id && (
                   <div className="news-actions">
-                    <button onClick={() => startEdit(item)} className="edit-btn">Редактировать</button>
-                    <button onClick={() => handleDeleteNews(item.id)} className="delete-btn">Удалить</button>
+                    <button onClick={() => startEdit(item)} className="edit-news-btn">
+                      ✏️ Редактировать
+                    </button>
+                    <button onClick={() => handleDeleteNews(item.id)} className="delete-news-btn">
+                      🗑️ Удалить
+                    </button>
                   </div>
                 )}
               </div>
