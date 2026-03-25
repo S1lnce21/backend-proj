@@ -15,21 +15,20 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  username String   @unique
-  email    String   @unique
-  password String
-  createAt DateTime @default(now())
-  posts    Post[]
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  posts     Post[]
 }
 
 model Post {
-  id      Int     @id @default(autoincrement())
-  title   String
-  content String?
-
-  // Поле для хранения ID автора
-  authorId Int
-  // Описание связи: поле authorId ссылается на id в модели User
-  author   User @relation(fields: [authorId], references: [id])
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
