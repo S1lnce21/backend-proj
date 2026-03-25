@@ -1,15 +1,20 @@
-import express, { type Request, type Response } from "express";
+import express from "express";
 import cors from "cors";
-// import { pool } from "./db";
-
+import cookieParser from "cookie-parser";
 import authRouter from "./api/auth";
+import postsRouter from "./api/posts";
 
 const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cookieParser());
+app.use(cors({ 
+  origin: "http://localhost:5173", 
+  credentials: true
+}));
 
 app.use("/api/auth", authRouter);
+app.use("/api/posts", postsRouter);
 
 app.get("/", (req, res) => {
   res.status(200).json({ status: "ok!!!!!!" });
