@@ -1,4 +1,5 @@
 import React from 'react';
+import PostsManager from './PostsManager';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -14,10 +15,7 @@ const Dashboard = ({ user, onLogout }) => {
           <p><strong>Имя пользователя:</strong> {user?.username}</p>
         </div>
 
-        <div className="dashboard-content">
-          <p>Вы успешно авторизовались в системе!</p>
-          <p>Это защищенная страница, доступная только авторизованным пользователям.</p>
-        </div>
+        <PostsManager user={user} />
 
         <button onClick={onLogout} className="logout-button">
           Выйти
