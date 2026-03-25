@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { authAPI } from '../services/api';
 import './Auth.css';
 
 const Register = ({ onSwitch, onRegister }) => {
@@ -7,42 +6,26 @@ const Register = ({ onSwitch, onRegister }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setLocalError('');
 
     if (password !== confirmPassword) {
-      setError('Пароли не совпадают');
+      setLocalError('Пароли не совпадают');
       return;
     }
 
     if (password.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
+      setLocalError('Пароль должен содержать минимум 6 символов');
       return;
     }
 
     setLoading(true);
-
-    try {
-      await authAPI.register({ username, email, password });
-      
-      const loginResponse = await authAPI.login({ email, password });
-      const { token, user } = loginResponse.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      if (onRegister) {
-        onRegister(user);
-      }
-    } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка при регистрации');
-    } finally {
-      setLoading(false);
-    }
+    await onRegister(username, email, password);
+    setLoading(false);
   };
 
   return (
@@ -50,7 +33,7 @@ const Register = ({ onSwitch, onRegister }) => {
       <form onSubmit={handleSubmit} className="auth-box">
         <h2>Регистрация</h2>
         
-        {error && <div className="error-message">{error}</div>}
+        {localError && <div className="error-message">{localError}</div>}
         
         <div className="form-group">
           <label>Email:</label>

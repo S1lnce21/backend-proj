@@ -9,23 +9,57 @@ function App() {
   const [isLogin, setIsLogin] = useState(true);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    
-    if (savedUser && token) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+    checkAuth();
   }, []);
 
-  const handleLogin = (userData) => {
-    setUser(userData);
+  const checkAuth = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await authAPI.getMe();
+      setUser(response.data.user);
+    } catch (error) {
+      console.error('Ошибка проверки аутентификации:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRegister = (userData) => {
-    setUser(userData);
+  const handleLogin = async (email, password) => {
+    setError('');
+    try {
+      const response = await authAPI.login({ email, password });
+      const { user, token } = response.data;
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Ошибка при входе');
+    }
+  };
+
+  const handleRegister = async (username, email, password) => {
+    setError('');
+    try {
+      const response = await authAPI.register({ username, email, password });
+      const { user, token } = response.data;
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Ошибка при регистрации');
+    }
   };
 
   const handleLogout = async () => {
@@ -39,10 +73,6 @@ function App() {
       setUser(null);
       setIsLogin(true);
     }
-  };
-
-  const handleSwitch = () => {
-    setIsLogin(!isLogin);
   };
 
   if (loading) {
@@ -59,10 +89,17 @@ function App() {
 
   return (
     <div className="container">
+      {error && <div className="error-message">{error}</div>}
       {isLogin ? (
-        <Login onSwitch={handleSwitch} onLogin={handleLogin} />
+        <Login 
+          onSwitch={() => setIsLogin(false)} 
+          onLogin={handleLogin}
+        />
       ) : (
-        <Register onSwitch={handleSwitch} onRegister={handleRegister} />
+        <Register 
+          onSwitch={() => setIsLogin(true)} 
+          onRegister={handleRegister}
+        />
       )}
     </div>
   );

@@ -1,41 +1,22 @@
 import React, { useState } from 'react';
-import { authAPI } from '../services/api';
 import './Auth.css';
 
 const Login = ({ onSwitch, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-
-    try {
-      const response = await authAPI.login({ email, password });
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      if (onLogin) {
-        onLogin(user);
-      }
-    } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка при входе');
-    } finally {
-      setLoading(false);
-    }
+    await onLogin(email, password);
+    setLoading(false);
   };
 
   return (
     <main className="auth-container">
       <form onSubmit={handleSubmit} className="auth-box">
         <h2>Вход</h2>
-        
-        {error && <div className="error-message">{error}</div>}
         
         <div className="form-group">
           <label htmlFor="email">Email:</label>
