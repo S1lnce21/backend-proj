@@ -11,16 +11,13 @@ interface News {
   updatedAt: Date;
 }
 
-// Хранилище новостей в памяти
 let news: News[] = [];
 let nextNewsId = 1;
 
 const router = express.Router();
 
-// Все маршруты требуют авторизации
 router.use(authenticateToken);
 
-// GET /api/news - получить все новости
 router.get("/", async (req: AuthRequest, res: Response) => {
   try {
     const newsWithAuthor = news.map(item => ({
@@ -36,7 +33,6 @@ router.get("/", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /api/news/:id - получить новость по ID
 router.get("/:id", async (req: AuthRequest, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -63,7 +59,6 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /api/news - создать новость
 router.post("/", async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -103,7 +98,6 @@ router.post("/", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// PUT /api/news/:id - обновить новость
 router.put("/:id", async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -145,7 +139,6 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// DELETE /api/news/:id - удалить новость
 router.delete("/:id", async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {

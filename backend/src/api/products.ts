@@ -14,16 +14,13 @@ interface Product {
   updatedAt: Date;
 }
 
-// Хранилище товаров в памяти
 let products: Product[] = [];
 let nextProductId = 1;
 
 const router = express.Router();
 
-// Все маршруты требуют авторизации
 router.use(authenticateToken);
 
-// GET /api/products - получить все товары
 router.get("/", async (req: AuthRequest, res: Response) => {
   try {
     const productsWithAuthor = products.map(product => ({
@@ -39,7 +36,6 @@ router.get("/", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /api/products/:id - получить товар по ID
 router.get("/:id", async (req: AuthRequest, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -66,7 +62,6 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /api/products - создать товар
 router.post("/", async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -109,7 +104,6 @@ router.post("/", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// PUT /api/products/:id - обновить товар
 router.put("/:id", async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -154,7 +148,6 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
   }
 });
 
-// DELETE /api/products/:id - удалить товар
 router.delete("/:id", async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
