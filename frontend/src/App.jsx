@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/dashboard';
+import SupportChat from './components/SupportChat';
 import { authAPI } from './services/api';
 import './App.css';
 
@@ -84,7 +85,12 @@ function App() {
   }
 
   if (user) {
-    return <Dashboard user={user} onLogout={handleLogout} />;
+    return (
+      <>
+        <Dashboard user={user} onLogout={handleLogout} />
+        <SupportChat />
+      </>
+    );
   }
 
   return (
@@ -101,6 +107,7 @@ function App() {
           onRegister={handleRegister}
         />
       )}
+      <SupportChat />
     </div>
   );
 }
