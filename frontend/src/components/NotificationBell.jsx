@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { notificationAPI } from '../services/notificationApi';
+import { useApp } from '../context/AppContext';
 import './styles/NotificationBell.css';
 
 const NotificationBell = ({ userId }) => {
+  const { t, theme, notificationsEnabled, soundEnabled } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedNotifications, setSelectedNotifications] = useState(new Set());
   const [socket, setSocket] = useState(null);
   const dropdownRef = useRef(null);
 
@@ -16,13 +19,22 @@ const NotificationBell = ({ userId }) => {
       setNotifications(response.data.notifications);
       setUnreadCount(response.data.unreadCount);
     } catch (error) {
-      console.error('Ошибка загрузки уведомлений:', error);
+      console.error('Error loading notifications:', error);
+    }
+  };
+
+  const playSound = () => {
+    if (soundEnabled) {
+      const audio = new Audio('/notification.mp3');
+      audio.play().catch(e => console.log('Sound play failed:', e));
     }
   };
 
   const showToast = (title, message, type) => {
+    if (!notificationsEnabled) return;
+    
     const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
+    toast.className = `toast-notification toast-${type} ${theme}`;
     toast.innerHTML = `
       <div class="toast-icon">${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : type === 'error' ? '❌' : 'ℹ️'}</div>
       <div class="toast-content">
@@ -57,6 +69,7 @@ const NotificationBell = ({ userId }) => {
       setNotifications(prev => [notification, ...prev]);
       setUnreadCount(prev => prev + 1);
       showToast(notification.title, notification.message, notification.type);
+      playSound();
     });
     
     setSocket(newSocket);
@@ -64,7 +77,7 @@ const NotificationBell = ({ userId }) => {
     return () => {
       if (newSocket) newSocket.disconnect();
     };
-  }, [userId]);
+  }, [userId, notificationsEnabled, soundEnabled]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -82,7 +95,7 @@ const NotificationBell = ({ userId }) => {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Ошибка:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -92,8 +105,40 @@ const NotificationBell = ({ userId }) => {
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Ошибка:', error);
+      console.error('Error:', error);
     }
+  };
+
+  const toggleSelectNotification = (id) => {
+    setSelectedNotifications(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedNotifications.size === notifications.length) {
+      setSelectedNotifications(new Set());
+    } else {
+      setSelectedNotifications(new Set(notifications.map(n => n.id)));
+    }
+  };
+
+  const deleteSelectedNotifications = async () => {
+    for (const id of selectedNotifications) {
+      await notificationAPI.delete(id);
+    }
+    setNotifications(prev => prev.filter(n => !selectedNotifications.has(n.id)));
+    setUnreadCount(prev => {
+      const deletedUnread = notifications.filter(n => selectedNotifications.has(n.id) && !n.isRead).length;
+      return Math.max(0, prev - deletedUnread);
+    });
+    setSelectedNotifications(new Set());
   };
 
   const deleteNotification = async (id) => {
@@ -102,18 +147,13 @@ const NotificationBell = ({ userId }) => {
       const deleted = notifications.find(n => n.id === id);
       setNotifications(prev => prev.filter(n => n.id !== id));
       if (!deleted?.isRead) setUnreadCount(prev => Math.max(0, prev - 1));
+      setSelectedNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     } catch (error) {
-      console.error('Ошибка:', error);
-    }
-  };
-
-  const deleteAll = async () => {
-    try {
-      await notificationAPI.deleteAll();
-      setNotifications([]);
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Ошибка:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -134,13 +174,20 @@ const NotificationBell = ({ userId }) => {
       </button>
 
       {isOpen && (
-        <div className="notification-dropdown">
+        <div className={`notification-dropdown ${theme}`}>
           <div className="notification-header">
-            <h3>Уведомления</h3>
+            <h3>{t('notifications')}</h3>
             {notifications.length > 0 && (
               <div className="notification-actions">
-                <button onClick={markAllAsRead} className="action-btn">✅ Все прочитаны</button>
-                <button onClick={deleteAll} className="action-btn danger">🗑️ Удалить все</button>
+                <button onClick={toggleSelectAll} className="action-btn">
+                  {selectedNotifications.size === notifications.length ? `✓ ${t('deselectAll')}` : `☐ ${t('selectAll')}`}
+                </button>
+                {selectedNotifications.size > 0 && (
+                  <button onClick={deleteSelectedNotifications} className="action-btn danger">
+                    🗑️ {t('deleteSelected')} ({selectedNotifications.size})
+                  </button>
+                )}
+                <button onClick={markAllAsRead} className="action-btn">✅ {t('markAllRead')}</button>
               </div>
             )}
           </div>
@@ -149,11 +196,18 @@ const NotificationBell = ({ userId }) => {
             {notifications.length === 0 && (
               <div className="notification-empty">
                 <span>📭</span>
-                <p>Нет уведомлений</p>
+                <p>{t('noNotifications')}</p>
               </div>
             )}
             {notifications.map(notification => (
               <div key={notification.id} className={`notification-item ${getTypeClass(notification.type)} ${!notification.isRead ? 'unread' : ''}`}>
+                <div className="notification-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedNotifications.has(notification.id)}
+                    onChange={() => toggleSelectNotification(notification.id)}
+                  />
+                </div>
                 <div className="notification-icon">{notification.type === 'success' ? '✅' : notification.type === 'warning' ? '⚠️' : notification.type === 'error' ? '❌' : 'ℹ️'}</div>
                 <div className="notification-content">
                   <div className="notification-title">{notification.title}</div>
@@ -162,9 +216,9 @@ const NotificationBell = ({ userId }) => {
                 </div>
                 <div className="notification-buttons">
                   {!notification.isRead && (
-                    <button onClick={() => markAsRead(notification.id)} className="read-btn" title="Прочитано">✓</button>
+                    <button onClick={() => markAsRead(notification.id)} className="read-btn" title={t('markRead')}>✓</button>
                   )}
-                  <button onClick={() => deleteNotification(notification.id)} className="delete-btn" title="Удалить">✗</button>
+                  <button onClick={() => deleteNotification(notification.id)} className="delete-btn" title={t('delete')}>✗</button>
                 </div>
               </div>
             ))}

@@ -139,3 +139,34 @@
 .logout-button:active {
   transform: translateY(0);
 }
+
+body.dark .dashboard-box {
+  background: #1e1e2e;
+}
+
+body.dark .user-info {
+  background: linear-gradient(135deg, #2a2a3e 0%, #1e1e2e 100%);
+}
+
+body.dark .user-info h3,
+body.dark .user-info p {
+  color: #ddd;
+}
+
+body.dark .tabs {
+  background: #1e1e2e;
+}
+
+body.dark .tab {
+  color: #aaa;
+}
+
+body.dark .tab:hover {
+  background: #2a2a3e;
+  color: #667eea;
+}
+
+body.dark .tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}

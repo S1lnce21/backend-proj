@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { useApp } from '../context/AppContext';
 import './styles/RealChat.css';
 
 const RealChat = ({ user }) => {
+  const { t, theme } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [socket, setSocket] = useState(null);
@@ -75,12 +77,12 @@ const RealChat = ({ user }) => {
       setMessages([]);
       
       const toast = document.createElement('div');
-      toast.className = 'toast-notification toast-success';
+      toast.className = `toast-notification toast-success ${theme}`;
       toast.innerHTML = `
         <div class="toast-icon">👥</div>
         <div class="toast-content">
-          <div class="toast-title">Новый собеседник!</div>
-          <div class="toast-message">${data.partnerName} присоединился к чату</div>
+          <div class="toast-title">${t('newPartner')}</div>
+          <div class="toast-message">${data.partnerName} ${t('partnerJoined')}</div>
         </div>
         <button class="toast-close">×</button>
       `;
@@ -111,8 +113,8 @@ const RealChat = ({ user }) => {
     newSocket.on('partner-left', () => {
       setMessages(prev => [...prev, {
         id: Date.now(),
-        message: 'Собеседник покинул чат. Нажмите кнопку для нового поиска.',
-        username: 'Система',
+        message: t('partnerLeft'),
+        username: 'System',
         timestamp: new Date(),
         userId: 0
       }]);
@@ -128,7 +130,7 @@ const RealChat = ({ user }) => {
     });
 
     newSocket.on('connect_error', (err) => {
-      setError(`Ошибка: ${err.message}`);
+      setError(`${t('errorLoading')}: ${err.message}`);
       setIsLooking(false);
       setIsWaiting(false);
       setIsConnecting(false);
@@ -138,7 +140,7 @@ const RealChat = ({ user }) => {
 
     newSocket.on('disconnect', (reason) => {
       if (reason === 'io server disconnect') {
-        setError('Сервер отключился');
+        setError(t('errorLoading'));
         resetChatState();
       }
     });
@@ -170,11 +172,11 @@ const RealChat = ({ user }) => {
   };
 
   const getStatusText = () => {
-    if (inChat) return `🟢 В чате с ${partnerName}`;
-    if (isConnecting) return '🟡 Подключение...';
-    if (isLooking) return '🔍 Поиск собеседника...';
-    if (isWaiting) return '⏳ Ожидание собеседника...';
-    return '⚫ Не подключен';
+    if (inChat) return `${t('inChatWith')} ${partnerName}`;
+    if (isConnecting) return t('connecting');
+    if (isLooking) return t('searching');
+    if (isWaiting) return t('waiting');
+    return t('notConnected');
   };
 
   const showMainButton = !inChat && !isLooking && !isWaiting && !isConnecting;
@@ -182,41 +184,32 @@ const RealChat = ({ user }) => {
 
   return (
     <>
-      <button className="chat-toggle-btn" onClick={() => setIsOpen(true)}>
+      <button className={`chat-toggle-btn ${theme}`} onClick={() => setIsOpen(true)}>
         💬
       </button>
 
       {isOpen && (
-        <div className="chat-modal">
+        <div className={`chat-modal ${theme}`}>
           <div className="chat-header">
             <div>
-              <h3>Чат с собеседником</h3>
-              <p className="chat-status">{getStatusText()}</p>
+              <h3>{t('chatWithPartner')}</h3>
+              <p className="chat-status">⚫ {getStatusText()}</p>
             </div>
-            <button className="close-chat-btn" onClick={() => setIsOpen(false)}>
-              ✖
-            </button>
+            <button className="close-chat-btn" onClick={() => setIsOpen(false)}>✖</button>
           </div>
 
           <div className="chat-messages">
             {messages.length === 0 && !inChat && !isLooking && !isWaiting && !isConnecting && (
               <div className="chat-empty">
-                <p>👋 Нажмите кнопку чтобы начать общение</p>
+                <p>{t('clickToStart')}</p>
               </div>
             )}
             {messages.map((msg, idx) => (
-              <div
-                key={msg.id || idx}
-                className={`message ${msg.userId === user?.id ? 'message-user' : 'message-partner'}`}
-              >
+              <div key={msg.id || idx} className={`message ${msg.userId === user?.id ? 'message-user' : 'message-partner'}`}>
                 <div className="message-bubble">
-                  {msg.username !== 'Система' && msg.userId !== user?.id && (
-                    <div className="message-sender">{msg.username}</div>
-                  )}
+                  {msg.username !== 'System' && msg.userId !== user?.id && <div className="message-sender">{msg.username}</div>}
                   <div className="message-text">{msg.message}</div>
-                  <div className="message-time">
-                    {new Date(msg.timestamp).toLocaleTimeString()}
-                  </div>
+                  <div className="message-time">{new Date(msg.timestamp).toLocaleTimeString()}</div>
                 </div>
               </div>
             ))}
@@ -225,44 +218,23 @@ const RealChat = ({ user }) => {
 
           <div className="chat-controls">
             {showMainButton && (
-              <button className="chat-btn-primary" onClick={findPartner}>
-                🔍 Найти собеседника
-              </button>
+              <button className="chat-btn-primary" onClick={findPartner}>{t('findPartner')}</button>
             )}
-            
             {showStopButton && (
-              <button className="chat-btn-danger" onClick={stopLooking}>
-                ⏹️ Остановить поиск
-              </button>
+              <button className="chat-btn-danger" onClick={stopLooking}>{t('stopSearch')}</button>
             )}
-            
             {inChat && (
               <>
                 <div className="chat-input-area">
-                  <input
-                    type="text"
-                    className="chat-input"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    placeholder="Введите сообщение..."
-                  />
-                  <button className="chat-send-btn" onClick={sendMessage}>
-                    📤
-                  </button>
+                  <input type="text" className="chat-input" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendMessage()} placeholder={t('enterMessage')} />
+                  <button className="chat-send-btn" onClick={sendMessage}>📤</button>
                 </div>
-                <button className="chat-leave-btn" onClick={leaveChat}>
-                  🚪 Покинуть чат
-                </button>
+                <button className="chat-leave-btn" onClick={leaveChat}>{t('leaveChat')}</button>
               </>
             )}
           </div>
           
-          {error && (
-            <div className="chat-error">
-              ⚠️ {error}
-            </div>
-          )}
+          {error && <div className="chat-error">⚠️ {error}</div>}
         </div>
       )}
     </>

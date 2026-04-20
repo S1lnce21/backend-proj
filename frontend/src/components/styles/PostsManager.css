@@ -319,3 +319,42 @@
   text-align: center;
   border: 1px solid #fcc;
 }
+
+body.dark .posts-manager,
+body.dark .post-card {
+  background: #1e1e2e;
+}
+
+body.dark .post-card {
+  border-color: #3a3a4e;
+}
+
+body.dark .post-title {
+  color: #fff;
+}
+
+body.dark .post-meta,
+body.dark .post-date {
+  color: #aaa;
+}
+
+body.dark .post-content {
+  background: #2a2a3e;
+  color: #ddd;
+}
+
+body.dark .post-form {
+  background: #2a2a3e;
+}
+
+body.dark .post-form input,
+body.dark .post-form textarea {
+  background: #1e1e2e;
+  border-color: #3a3a4e;
+  color: white;
+}
+
+body.dark .no-posts {
+  background: #2a2a3e;
+  color: #aaa;
+}

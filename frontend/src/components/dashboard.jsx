@@ -4,16 +4,20 @@ import NewsManager from './NewsManager';
 import ProductsManager from './ProductsManager';
 import NotificationBell from './NotificationBell';
 import UserMenu from './UserMenu';
+import { useApp } from '../context/AppContext';
 import './styles/Dashboard.css';
 
 const Dashboard = ({ user, onLogout, onUpdateUser }) => {
+  const { t, theme } = useApp();
   const [activeTab, setActiveTab] = useState('posts');
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-box">
+    <div className={`dashboard-container ${theme}`}>
+      <div className={`dashboard-box ${theme}`}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0 }}>Добро пожаловать, {user?.username}!</h2>
+          <h2 style={{ margin: 0, color: theme === 'dark' ? '#fff' : '#333' }}>
+            {t('welcome')}, {user?.username}!
+          </h2>
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
             <NotificationBell userId={user?.id} />
             <UserMenu user={user} onLogout={onLogout} onUpdateUser={onUpdateUser} />
@@ -25,19 +29,19 @@ const Dashboard = ({ user, onLogout, onUpdateUser }) => {
             className={activeTab === 'posts' ? 'tab active' : 'tab'}
             onClick={() => setActiveTab('posts')}
           >
-            📝 Посты
+            📝 {t('posts')}
           </button>
           <button 
             className={activeTab === 'news' ? 'tab active' : 'tab'}
             onClick={() => setActiveTab('news')}
           >
-            📰 Новости
+            📰 {t('news')}
           </button>
           <button 
             className={activeTab === 'products' ? 'tab active' : 'tab'}
             onClick={() => setActiveTab('products')}
           >
-            🛍️ Товары
+            🛍️ {t('products')}
           </button>
         </div>
 

@@ -1,0 +1,262 @@
+const translations = {
+  ru: {
+    // Общие
+    welcome: 'Добро пожаловать',
+    posts: 'Посты',
+    news: 'Новости',
+    products: 'Товары',
+    logout: 'Выйти',
+    save: 'Сохранить',
+    saveChanges: 'Сохранить изменения',
+    cancel: 'Отмена',
+    create: 'Создать',
+    edit: 'Редактировать',
+    delete: 'Удалить',
+    close: 'Закрыть',
+    
+    // Посты
+    postsManagement: 'Управление постами',
+    allPosts: 'Все посты',
+    myPosts: 'Мои посты',
+    createPost: 'Создать пост',
+    editPost: 'Редактировать пост',
+    createNewPost: 'Создать новый пост',
+    title: 'Заголовок',
+    content: 'Содержание',
+    author: 'Автор',
+    noPosts: 'Постов пока нет. Создайте первый!',
+    postCreated: 'Новый пост',
+    postUpdated: 'Пост обновлен',
+    postDeleted: 'Пост удален',
+    
+    // Новости
+    newsManagement: 'Управление новостями',
+    createNews: 'Создать новость',
+    editNews: 'Редактировать новость',
+    createNewNews: 'Создать новую новость',
+    imageUrl: 'URL изображения',
+    noNews: 'Новостей пока нет. Создайте первую!',
+    newsCreated: 'Новая новость',
+    newsUpdated: 'Новость обновлена',
+    newsDeleted: 'Новость удалена',
+    
+    // Товары
+    productsManagement: 'Управление товарами',
+    addProduct: 'Добавить товар',
+    editProduct: 'Редактировать товар',
+    productName: 'Название товара',
+    description: 'Описание',
+    price: 'Цена',
+    category: 'Категория',
+    stock: 'Количество',
+    inStock: 'В наличии',
+    noProducts: 'Товаров пока нет. Добавьте первый!',
+    productCreated: 'Новый товар',
+    productUpdated: 'Товар обновлен',
+    productDeleted: 'Товар удален',
+    
+    // Категории
+    electronics: 'Электроника',
+    clothing: 'Одежда',
+    books: 'Книги',
+    home: 'Дом и сад',
+    sports: 'Спорт',
+    other: 'Другое',
+    
+    // Чат
+    chatWithPartner: 'Чат с собеседником',
+    notConnected: 'Не подключен',
+    connecting: 'Подключение...',
+    searching: 'Поиск собеседника...',
+    waiting: 'Ожидание собеседника...',
+    inChatWith: 'В чате с',
+    findPartner: 'Найти собеседника',
+    stopSearch: 'Остановить поиск',
+    newSearch: 'Поиск нового собеседника',
+    leaveChat: 'Покинуть чат',
+    enterMessage: 'Введите сообщение...',
+    partnerLeft: 'Собеседник покинул чат. Нажмите кнопку для нового поиска.',
+    newPartner: 'Новый собеседник!',
+    partnerJoined: 'присоединился к чату',
+    clickToStart: 'Нажмите кнопку чтобы начать общение',
+    
+    // Уведомления
+    notifications: 'Уведомления',
+    markAllRead: 'Все прочитаны',
+    deleteAll: 'Удалить все',
+    noNotifications: 'Нет уведомлений',
+    selectAll: 'Выбрать все',
+    deselectAll: 'Снять все',
+    deleteSelected: 'Удалить выбранные',
+    markRead: 'Отметить прочитанным',
+    
+    // Профиль
+    account: 'Аккаунт',
+    profile: 'Профиль',
+    settings: 'Настройки',
+    theme: 'Тема',
+    email: 'Email',
+    username: 'Имя пользователя',
+    currentPassword: 'Текущий пароль (для смены)',
+    newPassword: 'Новый пароль',
+    confirmPassword: 'Подтверждение пароля',
+    logoutAccount: 'Выйти из аккаунта',
+    
+    // Настройки
+    language: 'Язык',
+    notificationsToggle: 'Уведомления',
+    soundToggle: 'Звук уведомлений',
+    on: 'Вкл',
+    off: 'Выкл',
+    russian: 'Русский',
+    english: 'English',
+    
+    // Темы
+    lightTheme: 'Светлая тема',
+    darkTheme: 'Темная тема',
+    themeChanged: 'Тема изменена',
+    languageChanged: 'Язык изменен',
+    profileUpdated: 'Профиль обновлен',
+    
+    // Ошибки
+    errorLoading: 'Ошибка при загрузке',
+    errorCreating: 'Ошибка при создании',
+    errorUpdating: 'Ошибка при обновлении',
+    errorDeleting: 'Ошибка при удалении',
+    fillAllFields: 'Все поля обязательны',
+    passwordsDoNotMatch: 'Пароли не совпадают',
+    passwordMinLength: 'Пароль должен быть не менее 6 символов',
+    updateError: 'Ошибка обновления профиля'
+  },
+  en: {
+    // Common
+    welcome: 'Welcome',
+    posts: 'Posts',
+    news: 'News',
+    products: 'Products',
+    logout: 'Logout',
+    save: 'Save',
+    saveChanges: 'Save changes',
+    cancel: 'Cancel',
+    create: 'Create',
+    edit: 'Edit',
+    delete: 'Delete',
+    close: 'Close',
+    
+    // Posts
+    postsManagement: 'Posts Management',
+    allPosts: 'All Posts',
+    myPosts: 'My Posts',
+    createPost: 'Create Post',
+    editPost: 'Edit Post',
+    createNewPost: 'Create New Post',
+    title: 'Title',
+    content: 'Content',
+    author: 'Author',
+    noPosts: 'No posts yet. Create your first!',
+    postCreated: 'New Post',
+    postUpdated: 'Post Updated',
+    postDeleted: 'Post Deleted',
+    
+    // News
+    newsManagement: 'News Management',
+    createNews: 'Create News',
+    editNews: 'Edit News',
+    createNewNews: 'Create New News',
+    imageUrl: 'Image URL',
+    noNews: 'No news yet. Create your first!',
+    newsCreated: 'New News',
+    newsUpdated: 'News Updated',
+    newsDeleted: 'News Deleted',
+    
+    // Products
+    productsManagement: 'Products Management',
+    addProduct: 'Add Product',
+    editProduct: 'Edit Product',
+    productName: 'Product Name',
+    description: 'Description',
+    price: 'Price',
+    category: 'Category',
+    stock: 'Stock',
+    inStock: 'In stock',
+    noProducts: 'No products yet. Add your first!',
+    productCreated: 'New Product',
+    productUpdated: 'Product Updated',
+    productDeleted: 'Product Deleted',
+    
+    // Categories
+    electronics: 'Electronics',
+    clothing: 'Clothing',
+    books: 'Books',
+    home: 'Home & Garden',
+    sports: 'Sports',
+    other: 'Other',
+    
+    // Chat
+    chatWithPartner: 'Chat with Partner',
+    notConnected: 'Not connected',
+    connecting: 'Connecting...',
+    searching: 'Searching for partner...',
+    waiting: 'Waiting for partner...',
+    inChatWith: 'In chat with',
+    findPartner: 'Find Partner',
+    stopSearch: 'Stop Search',
+    newSearch: 'Find new partner',
+    leaveChat: 'Leave Chat',
+    enterMessage: 'Enter message...',
+    partnerLeft: 'Partner left the chat. Click button to start new search.',
+    newPartner: 'New Partner!',
+    partnerJoined: 'joined the chat',
+    clickToStart: 'Click button to start chatting',
+    
+    // Notifications
+    notifications: 'Notifications',
+    markAllRead: 'Mark all read',
+    deleteAll: 'Delete all',
+    noNotifications: 'No notifications',
+    selectAll: 'Select all',
+    deselectAll: 'Deselect all',
+    deleteSelected: 'Delete selected',
+    markRead: 'Mark as read',
+    
+    // Profile
+    account: 'Account',
+    profile: 'Profile',
+    settings: 'Settings',
+    theme: 'Theme',
+    email: 'Email',
+    username: 'Username',
+    currentPassword: 'Current password (for change)',
+    newPassword: 'New password',
+    confirmPassword: 'Confirm password',
+    logoutAccount: 'Logout',
+    
+    // Settings
+    language: 'Language',
+    notificationsToggle: 'Notifications',
+    soundToggle: 'Notification sound',
+    on: 'On',
+    off: 'Off',
+    russian: 'Russian',
+    english: 'English',
+    
+    // Themes
+    lightTheme: 'Light theme',
+    darkTheme: 'Dark theme',
+    themeChanged: 'Theme changed',
+    languageChanged: 'Language changed',
+    profileUpdated: 'Profile updated',
+    
+    // Errors
+    errorLoading: 'Error loading',
+    errorCreating: 'Error creating',
+    errorUpdating: 'Error updating',
+    errorDeleting: 'Error deleting',
+    fillAllFields: 'All fields are required',
+    passwordsDoNotMatch: 'Passwords do not match',
+    passwordMinLength: 'Password must be at least 6 characters',
+    updateError: 'Profile update error'
+  }
+};
+
+export default translations;

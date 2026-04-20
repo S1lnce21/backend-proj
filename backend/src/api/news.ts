@@ -11,6 +11,11 @@ interface News {
   updatedAt: Date;
 }
 
+const getUsernameById = (userId: number): string => {
+  const user = (global as any).usersForPosts?.find((u: any) => u.id === userId);
+  return user?.username || `user_${userId}`;
+};
+
 let news: News[] = [];
 let nextNewsId = 1;
 
@@ -24,7 +29,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...item,
       author: {
         id: item.authorId,
-        username: item.authorId === 1 ? "testuser" : item.authorId === 2 ? "admin" : "user"
+        username: getUsernameById(item.authorId)
       }
     }));
     res.json({ news: newsWithAuthor });
@@ -50,7 +55,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...newsItem,
         author: {
           id: newsItem.authorId,
-          username: newsItem.authorId === 1 ? "testuser" : newsItem.authorId === 2 ? "admin" : "user"
+          username: getUsernameById(newsItem.authorId)
         }
       }
     });
@@ -89,7 +94,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
         ...newNews,
         author: {
           id: req.user.userId,
-          username: req.user.userId === 1 ? "testuser" : "admin"
+          username: getUsernameById(req.user.userId)
         }
       }
     });
@@ -130,7 +135,7 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
         ...news[newsIndex],
         author: {
           id: news[newsIndex].authorId,
-          username: news[newsIndex].authorId === 1 ? "testuser" : "admin"
+          username: getUsernameById(news[newsIndex].authorId)
         }
       }
     });

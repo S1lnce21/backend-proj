@@ -10,8 +10,18 @@ interface Post {
   updatedAt: Date;
 }
 
+declare global {
+  var usersForPosts: any[];
+}
+global.usersForPosts = global.usersForPosts || [];
+
 let posts: Post[] = [];
 let nextPostId = 1;
+
+const getUsernameById = (userId: number): string => {
+  const user = (global as any).usersForPosts?.find((u: any) => u.id === userId);
+  return user?.username || `user_${userId}`;
+};
 
 const router = express.Router();
 
@@ -23,7 +33,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...post,
       author: {
         id: post.authorId,
-        username: post.authorId === 1 ? "testuser" : post.authorId === 2 ? "admin" : "user"
+        username: getUsernameById(post.authorId)
       }
     }));
     res.json({ posts: postsWithAuthor });
@@ -44,7 +54,7 @@ router.get("/my", async (req: AuthRequest, res: Response) => {
         ...post,
         author: {
           id: post.authorId,
-          username: req.user!.userId === 1 ? "testuser" : "admin"
+          username: getUsernameById(post.authorId)
         }
       }));
     
@@ -71,7 +81,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...post,
         author: {
           id: post.authorId,
-          username: post.authorId === 1 ? "testuser" : post.authorId === 2 ? "admin" : "user"
+          username: getUsernameById(post.authorId)
         }
       }
     });
@@ -109,7 +119,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
         ...newPost,
         author: {
           id: req.user.userId,
-          username: req.user.userId === 1 ? "testuser" : "admin"
+          username: getUsernameById(req.user.userId)
         }
       }
     });
@@ -149,7 +159,7 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
         ...posts[postIndex],
         author: {
           id: posts[postIndex].authorId,
-          username: posts[postIndex].authorId === 1 ? "testuser" : "admin"
+          username: getUsernameById(posts[postIndex].authorId)
         }
       }
     });

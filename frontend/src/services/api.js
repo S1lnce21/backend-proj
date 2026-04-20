@@ -38,6 +38,7 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
+  updateProfile: (data) => api.put('/auth/profile', data),  // НОВЫЙ МЕТОД
 };
 
 export const postsAPI = {

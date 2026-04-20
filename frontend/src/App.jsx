@@ -3,10 +3,11 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/dashboard';
 import RealChat from './components/RealChat';
+import { AppProvider } from './context/AppContext';
 import { authAPI } from './services/api';
 import './App.css';
 
-function App() {
+function AppContent() {
   const [isLogin, setIsLogin] = useState(true);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,8 +15,6 @@ function App() {
 
   useEffect(() => {
     checkAuth();
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.body.className = savedTheme;
   }, []);
 
   const checkAuth = async () => {
@@ -29,7 +28,7 @@ function App() {
       const response = await authAPI.getMe();
       setUser(response.data.user);
     } catch (error) {
-      console.error('Ошибка проверки аутентификации:', error);
+      console.error('Auth check error:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     } finally {
@@ -47,7 +46,7 @@ function App() {
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
     } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка при входе');
+      setError(err.response?.data?.error || 'Login error');
     }
   };
 
@@ -61,7 +60,7 @@ function App() {
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
     } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка при регистрации');
+      setError(err.response?.data?.error || 'Registration error');
     }
   };
 
@@ -69,7 +68,7 @@ function App() {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.error('Ошибка при выходе:', error);
+      console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -84,7 +83,7 @@ function App() {
   };
 
   if (loading) {
-    return <div className="container"><div className="loading">Загрузка...</div></div>;
+    return <div className="container"><div className="loading">Loading...</div></div>;
   }
 
   if (user) {
@@ -105,6 +104,14 @@ function App() {
         <Register onSwitch={() => setIsLogin(true)} onRegister={handleRegister} />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
   );
 }
 

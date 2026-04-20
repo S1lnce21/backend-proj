@@ -406,3 +406,30 @@
     max-width: 90%;
   }
 }
+
+body.dark .chat-modal {
+  background: #1e1e2e;
+}
+
+body.dark .chat-messages {
+  background: #1a1a2e;
+}
+
+body.dark .message-partner .message-bubble {
+  background: #2a2a3e;
+  color: #fff;
+}
+
+body.dark .chat-input {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: white;
+}
+
+body.dark .chat-empty p {
+  color: #aaa;
+}
+
+body.dark .chat-status {
+  color: #ddd;
+}

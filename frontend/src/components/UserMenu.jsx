@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { authAPI } from '../services/api';
+import { useApp } from '../context/AppContext';
 import './styles/UserMenu.css';
 
 const UserMenu = ({ user, onLogout, onUpdateUser }) => {
+  const { t, language, setLanguage, theme, setTheme, notificationsEnabled, setNotificationsEnabled, soundEnabled, setSoundEnabled } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [settings, setSettings] = useState({
@@ -11,15 +13,19 @@ const UserMenu = ({ user, onLogout, onUpdateUser }) => {
     newPassword: '',
     confirmPassword: ''
   });
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.body.className = newTheme;
-    setMessage(`Тема изменена на ${newTheme === 'light' ? 'светлую' : 'темную'}`);
+    setMessage(t('themeChanged'));
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang);
+    setMessage(t('languageChanged'));
     setTimeout(() => setMessage(''), 3000);
   };
 
@@ -27,58 +33,76 @@ const UserMenu = ({ user, onLogout, onUpdateUser }) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    setLoading(true);
     
     if (settings.newPassword && settings.newPassword !== settings.confirmPassword) {
-      setError('Новые пароли не совпадают');
+      setError(t('passwordsDoNotMatch'));
+      setLoading(false);
       return;
     }
     
     if (settings.newPassword && settings.newPassword.length < 6) {
-      setError('Пароль должен быть не менее 6 символов');
+      setError(t('passwordMinLength'));
+      setLoading(false);
       return;
     }
     
     try {
       const updateData = {
         username: settings.username,
-        ...(settings.password && { currentPassword: settings.password }),
-        ...(settings.newPassword && { newPassword: settings.newPassword })
       };
       
+      if (settings.password) {
+        updateData.currentPassword = settings.password;
+      }
+      
+      if (settings.newPassword) {
+        updateData.newPassword = settings.newPassword;
+      }
+      
       const response = await authAPI.updateProfile(updateData);
+      
       if (response.data.user) {
         onUpdateUser(response.data.user);
-        setMessage('Профиль успешно обновлен');
-        setSettings({ ...settings, password: '', newPassword: '', confirmPassword: '' });
+        setMessage(t('profileUpdated'));
+        setSettings({ 
+          username: response.data.user.username,
+          password: '', 
+          newPassword: '', 
+          confirmPassword: '' 
+        });
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка при обновлении профиля');
+      console.error('Update error:', err);
+      setError(err.response?.data?.error || t('updateError'));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
+    <div className="user-menu-container">
       <button className="user-menu-btn" onClick={() => setIsOpen(!isOpen)}>
         👤 {user?.username}
       </button>
 
       {isOpen && (
-        <div className="user-menu-modal">
+        <div className={`user-menu-dropdown ${theme}`}>
           <div className="user-menu-header">
-            <h3>Аккаунт</h3>
+            <h3>{t('account')}</h3>
             <button className="close-menu-btn" onClick={() => setIsOpen(false)}>✖</button>
           </div>
 
           <div className="user-menu-tabs">
             <button className={`menu-tab ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
-              👤 Профиль
+              👤 {t('profile')}
             </button>
             <button className={`menu-tab ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
-              ⚙️ Настройки
+              ⚙️ {t('settings')}
             </button>
             <button className={`menu-tab ${activeTab === 'theme' ? 'active' : ''}`} onClick={() => setActiveTab('theme')}>
-              🎨 Тема
+              🎨 {t('theme')}
             </button>
           </div>
 
@@ -86,53 +110,80 @@ const UserMenu = ({ user, onLogout, onUpdateUser }) => {
             {activeTab === 'profile' && (
               <form onSubmit={handleUpdateProfile} className="profile-form">
                 <div className="form-group">
-                  <label>Email</label>
+                  <label>{t('email')}</label>
                   <input type="email" value={user?.email} disabled className="disabled-input" />
                 </div>
                 <div className="form-group">
-                  <label>Имя пользователя</label>
-                  <input type="text" value={settings.username} onChange={(e) => setSettings({ ...settings, username: e.target.value })} required />
+                  <label>{t('username')}</label>
+                  <input 
+                    type="text" 
+                    value={settings.username} 
+                    onChange={(e) => setSettings({ ...settings, username: e.target.value })} 
+                    required 
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Текущий пароль (для смены)</label>
-                  <input type="password" value={settings.password} onChange={(e) => setSettings({ ...settings, password: e.target.value })} placeholder="Введите текущий пароль" />
+                  <label>{t('currentPassword')}</label>
+                  <input 
+                    type="password" 
+                    value={settings.password} 
+                    onChange={(e) => setSettings({ ...settings, password: e.target.value })} 
+                    placeholder={t('currentPassword')}
+                    autoComplete="off"
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Новый пароль</label>
-                  <input type="password" value={settings.newPassword} onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })} placeholder="Введите новый пароль" />
+                  <label>{t('newPassword')}</label>
+                  <input 
+                    type="password" 
+                    value={settings.newPassword} 
+                    onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })} 
+                    placeholder={t('newPassword')}
+                    autoComplete="off"
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Подтверждение пароля</label>
-                  <input type="password" value={settings.confirmPassword} onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })} placeholder="Подтвердите новый пароль" />
+                  <label>{t('confirmPassword')}</label>
+                  <input 
+                    type="password" 
+                    value={settings.confirmPassword} 
+                    onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })} 
+                    placeholder={t('confirmPassword')}
+                    autoComplete="off"
+                  />
                 </div>
                 {error && <div className="error-msg">{error}</div>}
                 {message && <div className="success-msg">{message}</div>}
-                <button type="submit" className="save-btn">Сохранить изменения</button>
-                <button type="button" className="logout-btn" onClick={onLogout}>🚪 Выйти из аккаунта</button>
+                <button type="submit" className="save-btn" disabled={loading}>
+                  {loading ? '...' : t('saveChanges')}
+                </button>
+                <button type="button" className="logout-btn" onClick={onLogout}>
+                  {t('logoutAccount')}
+                </button>
               </form>
             )}
 
             {activeTab === 'settings' && (
               <div className="settings-panel">
                 <div className="setting-item">
-                  <label>Язык</label>
-                  <select value="ru" disabled>
-                    <option value="ru">Русский</option>
-                    <option value="en">English</option>
+                  <label>{t('language')}</label>
+                  <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
+                    <option value="ru">{t('russian')}</option>
+                    <option value="en">{t('english')}</option>
                   </select>
                 </div>
                 <div className="setting-item">
-                  <label>Уведомления</label>
+                  <label>{t('notificationsToggle')}</label>
                   <div className="toggle-switch">
-                    <input type="checkbox" id="notifications" defaultChecked />
-                    <label htmlFor="notifications">Включить уведомления</label>
+                    <input type="checkbox" id="notifications" checked={notificationsEnabled} onChange={(e) => setNotificationsEnabled(e.target.checked)} />
+                    <label htmlFor="notifications">{notificationsEnabled ? t('on') : t('off')}</label>
                   </div>
                 </div>
                 <div className="setting-item">
-                  <label>Звук уведомлений</label>
+                  <label>{t('soundToggle')}</label>
                   <div className="toggle-switch">
-                    <input type="checkbox" id="sound" defaultChecked />
-                    <label htmlFor="sound">Включить звук</label>
+                    <input type="checkbox" id="sound" checked={soundEnabled} onChange={(e) => setSoundEnabled(e.target.checked)} />
+                    <label htmlFor="sound">{soundEnabled ? t('on') : t('off')}</label>
                   </div>
                 </div>
               </div>
@@ -140,18 +191,24 @@ const UserMenu = ({ user, onLogout, onUpdateUser }) => {
 
             {activeTab === 'theme' && (
               <div className="theme-panel">
-                <button className={`theme-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => handleThemeChange('light')}>
-                  ☀️ Светлая тема
+                <button 
+                  className={`theme-btn ${theme === 'light' ? 'active' : ''}`} 
+                  onClick={() => handleThemeChange('light')}
+                >
+                  ☀️ {t('lightTheme')}
                 </button>
-                <button className={`theme-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => handleThemeChange('dark')}>
-                  🌙 Темная тема
+                <button 
+                  className={`theme-btn ${theme === 'dark' ? 'active' : ''}`} 
+                  onClick={() => handleThemeChange('dark')}
+                >
+                  🌙 {t('darkTheme')}
                 </button>
               </div>
             )}
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

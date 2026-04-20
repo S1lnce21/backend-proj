@@ -14,6 +14,11 @@ interface Product {
   updatedAt: Date;
 }
 
+const getUsernameById = (userId: number): string => {
+  const user = (global as any).usersForPosts?.find((u: any) => u.id === userId);
+  return user?.username || `user_${userId}`;
+};
+
 let products: Product[] = [];
 let nextProductId = 1;
 
@@ -27,7 +32,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...product,
       author: {
         id: product.authorId,
-        username: product.authorId === req.user?.userId ? "sloy" : "testuser"
+        username: getUsernameById(product.authorId)
       }
     }));
     res.json({ products: productsWithAuthor });
@@ -53,7 +58,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...product,
         author: {
           id: product.authorId,
-          username: product.authorId === req.user?.userId ? "sloy" : "testuser"
+          username: getUsernameById(product.authorId)
         }
       }
     });
@@ -95,7 +100,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
         ...newProduct,
         author: {
           id: req.user.userId,
-          username: "sloy"
+          username: getUsernameById(req.user.userId)
         }
       }
     });
@@ -139,7 +144,7 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
         ...products[productIndex],
         author: {
           id: products[productIndex].authorId,
-          username: "sloy"
+          username: getUsernameById(products[productIndex].authorId)
         }
       }
     });
