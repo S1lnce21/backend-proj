@@ -24,7 +24,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...item,
       author: {
         id: item.authorId,
-        username: item.authorId === req.user?.userId ? "sloy" : "testuser"
+        username: item.authorId === 1 ? "testuser" : item.authorId === 2 ? "admin" : "user"
       }
     }));
     res.json({ news: newsWithAuthor });
@@ -50,7 +50,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...newsItem,
         author: {
           id: newsItem.authorId,
-          username: newsItem.authorId === req.user?.userId ? "sloy" : "testuser"
+          username: newsItem.authorId === 1 ? "testuser" : newsItem.authorId === 2 ? "admin" : "user"
         }
       }
     });
@@ -89,7 +89,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
         ...newNews,
         author: {
           id: req.user.userId,
-          username: "sloy"
+          username: req.user.userId === 1 ? "testuser" : "admin"
         }
       }
     });
@@ -130,7 +130,7 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
         ...news[newsIndex],
         author: {
           id: news[newsIndex].authorId,
-          username: "sloy"
+          username: news[newsIndex].authorId === 1 ? "testuser" : "admin"
         }
       }
     });

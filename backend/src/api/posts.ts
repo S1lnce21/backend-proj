@@ -13,29 +13,6 @@ interface Post {
 let posts: Post[] = [];
 let nextPostId = 1;
 
-const initTestPosts = () => {
-  if (posts.length === 0) {
-    posts.push({
-      id: nextPostId++,
-      title: "Мой первый пост",
-      content: "Это пример поста с красивым оформлением. Здесь можно писать любой текст.",
-      authorId: 1,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    posts.push({
-      id: nextPostId++,
-      title: "Интересная новость",
-      content: "Сегодня отличный день для создания нового контента!",
-      authorId: 1,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-  }
-};
-
-initTestPosts();
-
 const router = express.Router();
 
 router.use(authenticateToken);
@@ -46,7 +23,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...post,
       author: {
         id: post.authorId,
-        username: post.authorId === req.user?.userId ? "testuser" : "user"
+        username: post.authorId === 1 ? "testuser" : post.authorId === 2 ? "admin" : "user"
       }
     }));
     res.json({ posts: postsWithAuthor });
@@ -67,7 +44,7 @@ router.get("/my", async (req: AuthRequest, res: Response) => {
         ...post,
         author: {
           id: post.authorId,
-          username: "testuser"
+          username: req.user!.userId === 1 ? "testuser" : "admin"
         }
       }));
     
@@ -94,7 +71,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...post,
         author: {
           id: post.authorId,
-          username: post.authorId === req.user?.userId ? "testuser" : "user"
+          username: post.authorId === 1 ? "testuser" : post.authorId === 2 ? "admin" : "user"
         }
       }
     });
@@ -125,14 +102,14 @@ router.post("/", async (req: AuthRequest, res: Response) => {
     };
 
     posts.push(newPost);
-    console.log(`✅ Пост создан: ${newPost.title} (ID: ${newPost.id})`);
+    console.log(`✅ Пост создан: ${newPost.title} (ID: ${newPost.id}) by user ${req.user.userId}`);
     
     res.status(201).json({ 
       post: {
         ...newPost,
         author: {
           id: req.user.userId,
-          username: "testuser"
+          username: req.user.userId === 1 ? "testuser" : "admin"
         }
       }
     });
@@ -172,7 +149,7 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
         ...posts[postIndex],
         author: {
           id: posts[postIndex].authorId,
-          username: "testuser"
+          username: posts[postIndex].authorId === 1 ? "testuser" : "admin"
         }
       }
     });

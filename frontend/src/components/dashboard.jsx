@@ -3,9 +3,10 @@ import PostsManager from './PostsManager';
 import NewsManager from './NewsManager';
 import ProductsManager from './ProductsManager';
 import NotificationBell from './NotificationBell';
+import UserMenu from './UserMenu';
 import './styles/Dashboard.css';
 
-const Dashboard = ({ user, onLogout }) => {
+const Dashboard = ({ user, onLogout, onUpdateUser }) => {
   const [activeTab, setActiveTab] = useState('posts');
 
   return (
@@ -13,14 +14,10 @@ const Dashboard = ({ user, onLogout }) => {
       <div className="dashboard-box">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ margin: 0 }}>Добро пожаловать, {user?.username}!</h2>
-          <NotificationBell userId={user?.id} />
-        </div>
-        
-        <div className="user-info">
-          <h3>Ваши данные:</h3>
-          <p><strong>ID:</strong> {user?.id}</p>
-          <p><strong>Email:</strong> {user?.email}</p>
-          <p><strong>Имя пользователя:</strong> {user?.username}</p>
+          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+            <NotificationBell userId={user?.id} />
+            <UserMenu user={user} onLogout={onLogout} onUpdateUser={onUpdateUser} />
+          </div>
         </div>
 
         <div className="tabs">
@@ -49,10 +46,6 @@ const Dashboard = ({ user, onLogout }) => {
           {activeTab === 'news' && <NewsManager user={user} />}
           {activeTab === 'products' && <ProductsManager user={user} />}
         </div>
-
-        <button onClick={onLogout} className="logout-button">
-          Выйти
-        </button>
       </div>
     </div>
   );

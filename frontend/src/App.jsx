@@ -14,6 +14,8 @@ function App() {
 
   useEffect(() => {
     checkAuth();
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.className = savedTheme;
   }, []);
 
   const checkAuth = async () => {
@@ -76,6 +78,11 @@ function App() {
     }
   };
 
+  const handleUpdateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   if (loading) {
     return <div className="container"><div className="loading">Загрузка...</div></div>;
   }
@@ -83,7 +90,7 @@ function App() {
   if (user) {
     return (
       <>
-        <Dashboard user={user} onLogout={handleLogout} />
+        <Dashboard user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
         <RealChat user={user} />
       </>
     );
