@@ -2,7 +2,7 @@
   margin-top: 20px;
 }
 
-.section-header {
+.posts-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -11,32 +11,10 @@
   gap: 15px;
 }
 
-.section-header h2 {
+.posts-header h2 {
   margin: 0;
   color: #333;
   font-size: 24px;
-}
-
-.create-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  color: white !important;
-  border: none !important;
-  padding: 12px 28px !important;
-  border-radius: 25px !important;
-  cursor: pointer !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
-}
-
-.create-btn:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
-}
-
-.create-btn:active {
-  transform: translateY(0) !important;
 }
 
 .posts-controls {
@@ -44,7 +22,7 @@
   gap: 10px;
 }
 
-.posts-controls button {
+.posts-controls-btn {
   padding: 8px 20px;
   border: 2px solid #e0e0e0;
   background: white;
@@ -56,16 +34,39 @@
   font-size: 14px;
 }
 
-.posts-controls button:hover {
+.posts-controls-btn:hover {
   border-color: #667eea;
   color: #667eea;
   background: #f8f9ff;
+  transform: translateY(-2px);
 }
 
-.posts-controls button.active {
+.posts-controls-btn.active {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-color: transparent;
   color: white;
+}
+
+.create-post-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.create-post-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.create-post-btn:active {
+  transform: translateY(0);
 }
 
 .post-form {
@@ -95,8 +96,8 @@
   font-weight: 600;
 }
 
-.post-form input,
-.post-form textarea {
+.post-form-input,
+.post-form-textarea {
   width: 100%;
   padding: 12px 15px;
   margin-bottom: 15px;
@@ -109,14 +110,14 @@
   font-family: inherit;
 }
 
-.post-form input:focus,
-.post-form textarea:focus {
+.post-form-input:focus,
+.post-form-textarea:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.post-form textarea {
+.post-form-textarea {
   resize: vertical;
   min-height: 100px;
 }
@@ -128,9 +129,29 @@
   margin-top: 5px;
 }
 
-.form-actions button {
-  padding: 10px 28px;
+.submit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
+  padding: 10px 28px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 10px 28px;
   border-radius: 25px;
   cursor: pointer;
   font-size: 14px;
@@ -138,23 +159,7 @@
   transition: all 0.3s;
 }
 
-.form-actions button[type="submit"] {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.form-actions button[type="submit"]:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.form-actions button[type="button"] {
-  background: #95a5a6;
-  color: white;
-}
-
-.form-actions button[type="button"]:hover {
+.cancel-btn:hover {
   background: #7f8c8d;
   transform: translateY(-2px);
 }
@@ -201,7 +206,7 @@
   gap: 10px;
 }
 
-.post-header h3 {
+.post-title {
   color: #333;
   margin: 0;
   font-size: 22px;
@@ -231,7 +236,7 @@
 }
 
 .post-content {
-  color: #2c3e50 !important;
+  color: #2c3e50;
   line-height: 1.7;
   margin: 15px 0;
   white-space: pre-wrap;
@@ -252,35 +257,42 @@
   margin-top: 10px;
 }
 
-.edit-btn,
-.delete-btn {
-  padding: 6px 20px;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.edit-btn {
+.edit-post-btn {
   background: #3498db;
   color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
 }
 
-.edit-btn:hover {
+.edit-post-btn:hover {
   background: #2980b9;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
 }
 
-.delete-btn {
+.delete-post-btn {
   background: #e74c3c;
   color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
 }
 
-.delete-btn:hover {
+.delete-post-btn:hover {
   background: #c0392b;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
 }
 
 .no-posts {
@@ -292,7 +304,7 @@
   font-size: 16px;
 }
 
-.loading {
+.loading-posts {
   text-align: center;
   padding: 40px;
   color: #666;

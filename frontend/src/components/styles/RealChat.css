@@ -128,6 +128,7 @@
   display: flex;
   margin-bottom: 15px;
   animation: fadeIn 0.3s ease;
+  max-width: 100%;
 }
 
 @keyframes fadeIn {
@@ -150,10 +151,14 @@
 }
 
 .message-bubble {
-  max-width: 70%;
+  max-width: 80%;
   padding: 10px 15px;
   border-radius: 18px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .message-user .message-bubble {
@@ -173,8 +178,10 @@
 }
 
 .message-text {
-  word-wrap: break-word;
+  font-size: 14px;
   line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .message-time {
@@ -258,6 +265,9 @@
   font-size: 18px;
   color: white;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chat-send-btn:hover {
@@ -297,6 +307,84 @@
   border-top: 1px solid #fcc;
 }
 
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  z-index: 1100;
+  transform: translateX(400px);
+  transition: transform 0.3s ease;
+}
+
+.toast-notification.show {
+  transform: translateX(0);
+}
+
+.toast-notification.toast-success {
+  border-left: 4px solid #27ae60;
+}
+
+.toast-notification.toast-warning {
+  border-left: 4px solid #f39c12;
+}
+
+.toast-notification.toast-error {
+  border-left: 4px solid #e74c3c;
+}
+
+.toast-notification.toast-info {
+  border-left: 4px solid #3498db;
+}
+
+.toast-icon {
+  font-size: 24px;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: #666;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.toast-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
 @media (max-width: 768px) {
   .chat-modal {
     width: calc(100vw - 40px);
@@ -312,5 +400,9 @@
     width: 50px;
     height: 50px;
     font-size: 24px;
+  }
+  
+  .message-bubble {
+    max-width: 90%;
   }
 }

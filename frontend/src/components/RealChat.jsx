@@ -73,6 +73,28 @@ const RealChat = ({ user }) => {
       setIsWaiting(false);
       setIsLooking(false);
       setMessages([]);
+      
+      const toast = document.createElement('div');
+      toast.className = 'toast-notification toast-success';
+      toast.innerHTML = `
+        <div class="toast-icon">👥</div>
+        <div class="toast-content">
+          <div class="toast-title">Новый собеседник!</div>
+          <div class="toast-message">${data.partnerName} присоединился к чату</div>
+        </div>
+        <button class="toast-close">×</button>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.classList.add('show'), 100);
+      const closeBtn = toast.querySelector('.toast-close');
+      closeBtn.onclick = () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      };
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
     });
 
     newSocket.on('history', (history) => {
@@ -89,7 +111,7 @@ const RealChat = ({ user }) => {
     newSocket.on('partner-left', () => {
       setMessages(prev => [...prev, {
         id: Date.now(),
-        message: 'Собеседник покинул чат. Нажмите "Найти собеседника" для нового поиска.',
+        message: 'Собеседник покинул чат. Нажмите кнопку для нового поиска.',
         username: 'Система',
         timestamp: new Date(),
         userId: 0
@@ -128,7 +150,6 @@ const RealChat = ({ user }) => {
     if (!socket || !roomId || !inputMessage.trim() || !inChat) {
       return;
     }
-    
     socket.emit('send-message', { roomId, message: inputMessage });
     setInputMessage('');
   };
@@ -148,12 +169,6 @@ const RealChat = ({ user }) => {
     resetChatState();
   };
 
-  const startNewSearch = () => {
-    resetChatState();
-    setMessages([]);
-    findPartner();
-  };
-
   const getStatusText = () => {
     if (inChat) return `🟢 В чате с ${partnerName}`;
     if (isConnecting) return '🟡 Подключение...';
@@ -162,7 +177,8 @@ const RealChat = ({ user }) => {
     return '⚫ Не подключен';
   };
 
-  const showNewSearchButton = !inChat && !isLooking && !isWaiting && !isConnecting && (!socket || messages.length > 0);
+  const showMainButton = !inChat && !isLooking && !isWaiting && !isConnecting;
+  const showStopButton = (isConnecting || isLooking || isWaiting) && !inChat;
 
   return (
     <>
@@ -185,7 +201,7 @@ const RealChat = ({ user }) => {
           <div className="chat-messages">
             {messages.length === 0 && !inChat && !isLooking && !isWaiting && !isConnecting && (
               <div className="chat-empty">
-                <p>👋 Нажмите "Найти собеседника" чтобы начать общение</p>
+                <p>👋 Нажмите кнопку чтобы начать общение</p>
               </div>
             )}
             {messages.map((msg, idx) => (
@@ -208,21 +224,15 @@ const RealChat = ({ user }) => {
           </div>
 
           <div className="chat-controls">
-            {!socket && !inChat && !isLooking && !isWaiting && !isConnecting && messages.length === 0 && (
+            {showMainButton && (
               <button className="chat-btn-primary" onClick={findPartner}>
                 🔍 Найти собеседника
               </button>
             )}
             
-            {showNewSearchButton && (
-              <button className="chat-btn-primary" onClick={startNewSearch}>
-                🔄 Новый поиск
-              </button>
-            )}
-            
-            {(isConnecting || isLooking || isWaiting) && !inChat && (
+            {showStopButton && (
               <button className="chat-btn-danger" onClick={stopLooking}>
-                ⏹️ {isConnecting ? 'Отмена' : 'Остановить поиск'}
+                ⏹️ Остановить поиск
               </button>
             )}
             

@@ -1,3 +1,5 @@
+import { Server } from 'socket.io';
+
 interface Notification {
   id: string;
   userId: number;
@@ -10,6 +12,11 @@ interface Notification {
 
 class NotificationService {
   private notifications: Map<number, Notification[]> = new Map();
+  private io: Server | null = null;
+
+  setIo(io: Server) {
+    this.io = io;
+  }
 
   addNotification(userId: number, title: string, message: string, type: 'info' | 'success' | 'warning' | 'error'): Notification {
     const notification: Notification = {
@@ -27,7 +34,10 @@ class NotificationService {
     }
     this.notifications.get(userId)!.push(notification);
     
-    console.log(`📢 Уведомление для пользователя ${userId}: ${title}`);
+    if (this.io) {
+      this.io.to(`user_${userId}`).emit('new-notification', notification);
+    }
+    
     return notification;
   }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { postsAPI } from '../services/api';
+import { notificationAPI } from '../services/notificationApi';
 import './styles/PostsManager.css';
 
 const PostsManager = ({ user }) => {
@@ -19,13 +20,10 @@ const PostsManager = ({ user }) => {
     setLoading(true);
     setError('');
     try {
-      const response = view === 'all' 
-        ? await postsAPI.getAllPosts()
-        : await postsAPI.getMyPosts();
+      const response = view === 'all' ? await postsAPI.getAllPosts() : await postsAPI.getMyPosts();
       setPosts(response.data.posts);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при загрузке постов');
-      console.error('Error fetching posts:', err);
     } finally {
       setLoading(false);
     }
@@ -39,9 +37,9 @@ const PostsManager = ({ user }) => {
       setPosts([response.data.post, ...posts]);
       setFormData({ title: '', content: '' });
       setShowForm(false);
+      await notificationAPI.create({ title: 'Новый пост', message: `Пост "${response.data.post.title}" создан`, type: 'success' });
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при создании поста');
-      console.error('Error creating post:', err);
     }
   };
 
@@ -50,15 +48,13 @@ const PostsManager = ({ user }) => {
     setError('');
     try {
       const response = await postsAPI.updatePost(editingPost.id, formData);
-      setPosts(posts.map(post => 
-        post.id === editingPost.id ? response.data.post : post
-      ));
+      setPosts(posts.map(post => post.id === editingPost.id ? response.data.post : post));
       setEditingPost(null);
       setFormData({ title: '', content: '' });
       setShowForm(false);
+      await notificationAPI.create({ title: 'Пост обновлен', message: `Пост "${response.data.post.title}" обновлен`, type: 'info' });
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при обновлении поста');
-      console.error('Error updating post:', err);
     }
   };
 
@@ -66,11 +62,12 @@ const PostsManager = ({ user }) => {
     if (!window.confirm('Вы уверены, что хотите удалить этот пост?')) return;
     setError('');
     try {
+      const deletedPost = posts.find(p => p.id === id);
       await postsAPI.deletePost(id);
       setPosts(posts.filter(post => post.id !== id));
+      await notificationAPI.create({ title: 'Пост удален', message: `Пост "${deletedPost?.title}" удален`, type: 'warning' });
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при удалении поста');
-      console.error('Error deleting post:', err);
     }
   };
 
@@ -94,17 +91,20 @@ const PostsManager = ({ user }) => {
         <div className="posts-controls">
           <button 
             onClick={() => setView('all')}
-            className={view === 'all' ? 'active' : ''}
+            className={`posts-controls-btn ${view === 'all' ? 'active' : ''}`}
           >
             Все посты
           </button>
           <button 
             onClick={() => setView('my')}
-            className={view === 'my' ? 'active' : ''}
+            className={`posts-controls-btn ${view === 'my' ? 'active' : ''}`}
           >
             Мои посты
           </button>
-          <button onClick={() => setShowForm(!showForm)} className="create-btn">
+          <button 
+            onClick={() => setShowForm(!showForm)} 
+            className="create-post-btn"
+          >
             {showForm ? 'Отмена' : '+ Создать пост'}
           </button>
         </div>
@@ -121,6 +121,7 @@ const PostsManager = ({ user }) => {
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
+            className="post-form-input"
           />
           <textarea
             placeholder="Содержание"
@@ -128,12 +129,13 @@ const PostsManager = ({ user }) => {
             onChange={(e) => setFormData({ ...formData, content: e.target.value })}
             required
             rows="5"
+            className="post-form-textarea"
           />
           <div className="form-actions">
-            <button type="submit">
+            <button type="submit" className="submit-btn">
               {editingPost ? 'Обновить' : 'Создать'}
             </button>
-            <button type="button" onClick={cancelForm}>
+            <button type="button" onClick={cancelForm} className="cancel-btn">
               Отмена
             </button>
           </div>
@@ -141,7 +143,7 @@ const PostsManager = ({ user }) => {
       )}
 
       {loading ? (
-        <div className="loading">Загрузка постов...</div>
+        <div className="loading-posts">Загрузка постов...</div>
       ) : posts.length === 0 ? (
         <div className="no-posts">Постов пока нет. Создайте первый!</div>
       ) : (
@@ -149,7 +151,7 @@ const PostsManager = ({ user }) => {
           {posts.map(post => (
             <div key={post.id} className="post-card">
               <div className="post-header">
-                <h3>{post.title}</h3>
+                <h3 className="post-title">{post.title}</h3>
                 <div className="post-meta">
                   <span className="post-author">Автор: {post.author.username}</span>
                   <span className="post-date">
@@ -160,10 +162,10 @@ const PostsManager = ({ user }) => {
               <p className="post-content">{post.content}</p>
               {post.authorId === user?.id && (
                 <div className="post-actions">
-                  <button onClick={() => startEdit(post)} className="edit-btn">
+                  <button onClick={() => startEdit(post)} className="edit-post-btn">
                     Редактировать
                   </button>
-                  <button onClick={() => handleDeletePost(post.id)} className="delete-btn">
+                  <button onClick={() => handleDeletePost(post.id)} className="delete-post-btn">
                     Удалить
                   </button>
                 </div>
