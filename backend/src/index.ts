@@ -8,6 +8,7 @@ import postsRouter from "./api/posts";
 import newsRouter from "./api/news";
 import productsRouter from "./api/products";
 import { setupChatSocket } from './socket/chatSocket';
+import notificationsRouter from "./api/notifications";
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -22,11 +23,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// API routes
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postsRouter);
 app.use("/api/news", newsRouter);
 app.use("/api/products", productsRouter);
+app.use("/api/notifications", notificationsRouter);
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });

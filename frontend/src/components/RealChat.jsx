@@ -35,7 +35,6 @@ const RealChat = ({ user }) => {
     setIsLooking(false);
     setIsWaiting(false);
     setIsConnecting(false);
-    setMessages([]);
     setError(null);
   };
 
@@ -73,6 +72,7 @@ const RealChat = ({ user }) => {
       setInChat(true);
       setIsWaiting(false);
       setIsLooking(false);
+      setMessages([]);
     });
 
     newSocket.on('history', (history) => {
@@ -100,7 +100,8 @@ const RealChat = ({ user }) => {
       setIsLooking(false);
       setIsWaiting(false);
       if (socket) {
-        socket.off('partner-left');
+        socket.disconnect();
+        setSocket(null);
       }
     });
 
@@ -149,6 +150,7 @@ const RealChat = ({ user }) => {
 
   const startNewSearch = () => {
     resetChatState();
+    setMessages([]);
     findPartner();
   };
 
@@ -159,6 +161,8 @@ const RealChat = ({ user }) => {
     if (isWaiting) return '⏳ Ожидание собеседника...';
     return '⚫ Не подключен';
   };
+
+  const showNewSearchButton = !inChat && !isLooking && !isWaiting && !isConnecting && (!socket || messages.length > 0);
 
   return (
     <>
@@ -204,14 +208,14 @@ const RealChat = ({ user }) => {
           </div>
 
           <div className="chat-controls">
-            {!socket && !inChat && !isLooking && !isWaiting && !isConnecting && (
+            {!socket && !inChat && !isLooking && !isWaiting && !isConnecting && messages.length === 0 && (
               <button className="chat-btn-primary" onClick={findPartner}>
                 🔍 Найти собеседника
               </button>
             )}
             
-            {messages.length > 0 && !inChat && !socket && (
-              <button className="chat-btn-primary" onClick={startNewSearch} style={{ marginTop: '10px' }}>
+            {showNewSearchButton && (
+              <button className="chat-btn-primary" onClick={startNewSearch}>
                 🔄 Новый поиск
               </button>
             )}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PostsManager from './PostsManager';
 import NewsManager from './NewsManager';
 import ProductsManager from './ProductsManager';
+import NotificationBell from './NotificationBell';
 import './styles/Dashboard.css';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -10,7 +11,10 @@ const Dashboard = ({ user, onLogout }) => {
   return (
     <div className="dashboard-container">
       <div className="dashboard-box">
-        <h2>Добро пожаловать, {user?.username}!</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0 }}>Добро пожаловать, {user?.username}!</h2>
+          <NotificationBell userId={user?.id} />
+        </div>
         
         <div className="user-info">
           <h3>Ваши данные:</h3>
