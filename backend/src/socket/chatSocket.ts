@@ -63,7 +63,10 @@ export function setupChatSocket(io: Server) {
         const partner = chatService.getPartnerInRoom(room.id, userId);
         if (partner) {
           const partnerSocket = io.sockets.sockets.get(partner.socketId);
-          partnerSocket?.emit('partner-left');
+          if (partnerSocket) {
+            partnerSocket.emit('partner-left');
+            console.log(`📤 Уведомление отправлено партнеру ${partner.username}`);
+          }
         }
         socket.leave(room.id);
       }
@@ -86,7 +89,10 @@ export function setupChatSocket(io: Server) {
           const partner = chatService.getPartnerInRoom(room.id, currentUserId);
           if (partner) {
             const partnerSocket = io.sockets.sockets.get(partner.socketId);
-            partnerSocket?.emit('partner-left');
+            if (partnerSocket && partnerSocket.connected) {
+              partnerSocket.emit('partner-left');
+              console.log(`📤 Уведомление отправлено партнеру ${partner.username}`);
+            }
           }
         }
         chatService.removeUser(currentUserId);

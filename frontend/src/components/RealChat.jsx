@@ -10,6 +10,7 @@ const RealChat = ({ user }) => {
   const [isWaiting, setIsWaiting] = useState(false);
   const [inChat, setInChat] = useState(false);
   const [partnerName, setPartnerName] = useState(null);
+  const [roomId, setRoomId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -23,9 +24,27 @@ const RealChat = ({ user }) => {
     scrollToBottom();
   }, [messages]);
 
+  const resetChatState = () => {
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
+    setInChat(false);
+    setPartnerName(null);
+    setRoomId(null);
+    setIsLooking(false);
+    setIsWaiting(false);
+    setIsConnecting(false);
+    setMessages([]);
+    setError(null);
+  };
+
   const findPartner = () => {
-    if (isConnecting) return;
+    if (inChat || isLooking || isWaiting || isConnecting) {
+      return;
+    }
     
+    resetChatState();
     setIsConnecting(true);
     setError(null);
     
@@ -37,7 +56,6 @@ const RealChat = ({ user }) => {
     });
     
     newSocket.on('connect', () => {
-      console.log('✅ Socket connected');
       setError(null);
       newSocket.emit('find-partner', { userId: user.id, username: user.username });
       setIsLooking(true);
@@ -45,55 +63,60 @@ const RealChat = ({ user }) => {
     });
 
     newSocket.on('waiting', () => {
-      console.log('⏳ Waiting for partner...');
       setIsWaiting(true);
       setIsLooking(false);
     });
 
     newSocket.on('matched', (data) => {
-      console.log('🎉 Matched with:', data.partnerName);
+      setRoomId(data.roomId);
       setPartnerName(data.partnerName);
       setInChat(true);
       setIsWaiting(false);
       setIsLooking(false);
-      setMessages([]);
     });
 
     newSocket.on('history', (history) => {
-      console.log('📜 History loaded:', history.length);
       setMessages(history);
     });
 
     newSocket.on('new-message', (message) => {
-      console.log('💬 New message:', message);
-      setMessages(prev => [...prev, message]);
+      setMessages(prev => {
+        if (prev.some(m => m.id === message.id)) return prev;
+        return [...prev, message];
+      });
     });
 
     newSocket.on('partner-left', () => {
-      console.log('👋 Partner left');
-      setInChat(false);
-      setPartnerName(null);
       setMessages(prev => [...prev, {
         id: Date.now(),
-        message: 'Собеседник покинул чат',
+        message: 'Собеседник покинул чат. Нажмите "Найти собеседника" для нового поиска.',
         username: 'Система',
-        timestamp: new Date()
+        timestamp: new Date(),
+        userId: 0
       }]);
+      setInChat(false);
+      setPartnerName(null);
+      setRoomId(null);
+      setIsLooking(false);
+      setIsWaiting(false);
+      if (socket) {
+        socket.off('partner-left');
+      }
     });
 
     newSocket.on('connect_error', (err) => {
-      console.error('❌ Connection error:', err.message);
-      setError(`Ошибка подключения: ${err.message}. Убедитесь, что сервер запущен на порту 3000`);
+      setError(`Ошибка: ${err.message}`);
       setIsLooking(false);
       setIsWaiting(false);
       setIsConnecting(false);
       newSocket.disconnect();
+      setSocket(null);
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('🔌 Disconnected:', reason);
       if (reason === 'io server disconnect') {
-        setError('Сервер отключился. Перезагрузите страницу.');
+        setError('Сервер отключился');
+        resetChatState();
       }
     });
 
@@ -101,37 +124,32 @@ const RealChat = ({ user }) => {
   };
 
   const sendMessage = () => {
-    if (socket && inputMessage.trim() && inChat) {
-      socket.emit('send-message', { message: inputMessage });
-      setInputMessage('');
+    if (!socket || !roomId || !inputMessage.trim() || !inChat) {
+      return;
     }
+    
+    socket.emit('send-message', { roomId, message: inputMessage });
+    setInputMessage('');
   };
 
   const leaveChat = () => {
-    if (socket) {
+    if (socket && roomId) {
       socket.emit('leave-chat', { userId: user.id });
-      socket.disconnect();
-      setSocket(null);
-      setInChat(false);
-      setPartnerName(null);
-      setMessages([]);
-      setIsLooking(false);
-      setIsWaiting(false);
-      setIsConnecting(false);
-      setError(null);
     }
+    resetChatState();
   };
 
   const stopLooking = () => {
     if (socket) {
       socket.emit('stop-looking');
       socket.disconnect();
-      setSocket(null);
-      setIsLooking(false);
-      setIsWaiting(false);
-      setIsConnecting(false);
-      setError(null);
     }
+    resetChatState();
+  };
+
+  const startNewSearch = () => {
+    resetChatState();
+    findPartner();
   };
 
   const getStatusText = () => {
@@ -168,7 +186,7 @@ const RealChat = ({ user }) => {
             )}
             {messages.map((msg, idx) => (
               <div
-                key={idx}
+                key={msg.id || idx}
                 className={`message ${msg.userId === user?.id ? 'message-user' : 'message-partner'}`}
               >
                 <div className="message-bubble">
@@ -186,9 +204,15 @@ const RealChat = ({ user }) => {
           </div>
 
           <div className="chat-controls">
-            {!socket && !inChat && !isConnecting && (
+            {!socket && !inChat && !isLooking && !isWaiting && !isConnecting && (
               <button className="chat-btn-primary" onClick={findPartner}>
                 🔍 Найти собеседника
+              </button>
+            )}
+            
+            {messages.length > 0 && !inChat && !socket && (
+              <button className="chat-btn-primary" onClick={startNewSearch} style={{ marginTop: '10px' }}>
+                🔄 Новый поиск
               </button>
             )}
             

@@ -13,21 +13,33 @@ interface User {
 let users: User[] = [];
 let nextId = 1;
 
-const initTestUser = async () => {
+const initTestUsers = async () => {
   if (users.length === 0) {
-    const hashedPassword = await bcrypt.hash("TestPass123!", 10);
+    const hashedPassword1 = await bcrypt.hash("TestPass123!", 10);
     users.push({
       id: nextId++,
       username: "testuser",
       email: "test@test.com",
-      password: hashedPassword,
+      password: hashedPassword1,
       createdAt: new Date()
     });
-    console.log("✅ Тестовый пользователь создан: test@test.com / TestPass123!");
+    
+    const hashedPassword2 = await bcrypt.hash("AdminPass123!", 10);
+    users.push({
+      id: nextId++,
+      username: "admin",
+      email: "admin@test.com",
+      password: hashedPassword2,
+      createdAt: new Date()
+    });
+    
+    console.log("✅ Тестовые пользователи созданы:");
+    console.log("   testuser: test@test.com / TestPass123!");
+    console.log("   admin: admin@test.com / AdminPass123!");
   }
 };
 
-initTestUser();
+initTestUsers();
 
 const router = express.Router();
 
