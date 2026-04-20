@@ -14,20 +14,20 @@ export const authenticateToken = (
   next: NextFunction
 ) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ error: "Требуется авторизация" });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
       userId: number;
       email: string;
     };
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ error: "Недействительный или просроченный токен" });
+    return res.status(403).json({ error: "Недействительный токен" });
   }
 };

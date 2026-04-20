@@ -1,5 +1,5 @@
 import express, { Response } from "express";
-import { authenticateToken, AuthRequest } from "../middleware/auth";
+import { authenticateToken, AuthRequest } from "../middleware/authMiddleware";
 
 interface News {
   id: number;

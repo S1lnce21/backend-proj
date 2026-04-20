@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/dashboard';
-import SupportChat from './components/SupportChat';
+import RealChat from './components/RealChat';
 import { authAPI } from './services/api';
 import './App.css';
 
@@ -77,18 +77,14 @@ function App() {
   };
 
   if (loading) {
-    return (
-      <div className="container">
-        <div className="loading">Загрузка...</div>
-      </div>
-    );
+    return <div className="container"><div className="loading">Загрузка...</div></div>;
   }
 
   if (user) {
     return (
       <>
         <Dashboard user={user} onLogout={handleLogout} />
-        <SupportChat />
+        <RealChat user={user} />
       </>
     );
   }
@@ -97,17 +93,10 @@ function App() {
     <div className="container">
       {error && <div className="error-message">{error}</div>}
       {isLogin ? (
-        <Login 
-          onSwitch={() => setIsLogin(false)} 
-          onLogin={handleLogin}
-        />
+        <Login onSwitch={() => setIsLogin(false)} onLogin={handleLogin} />
       ) : (
-        <Register 
-          onSwitch={() => setIsLogin(true)} 
-          onRegister={handleRegister}
-        />
+        <Register onSwitch={() => setIsLogin(true)} onRegister={handleRegister} />
       )}
-      <SupportChat />
     </div>
   );
 }
