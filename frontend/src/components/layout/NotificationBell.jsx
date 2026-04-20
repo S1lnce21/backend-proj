@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { notificationAPI } from '../services/notificationApi';
-import { useApp } from '../context/AppContext';
-import './styles/NotificationBell.css';
+import { notificationAPI } from '../../services/notificationApi';
+import { useApp } from '../../context/AppContext';
+import '../styles/NotificationBell.css';
 
 const NotificationBell = ({ userId }) => {
   const { t, theme, notificationsEnabled, soundEnabled } = useApp();

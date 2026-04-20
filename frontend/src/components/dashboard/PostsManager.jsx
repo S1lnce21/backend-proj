@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { postsAPI } from '../services/api';
-import { notificationAPI } from '../services/notificationApi';
-import { useApp } from '../context/AppContext';
-import './styles/PostsManager.css';
+import { postsAPI } from '../../services/api';
+import { notificationAPI } from '../../services/notificationApi';
+import { useApp } from '../../context/AppContext';
+import '../styles/PostsManager.css';
 
 const PostsManager = ({ user }) => {
   const { t, theme } = useApp();

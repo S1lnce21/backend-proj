@@ -2,6 +2,23 @@ const translations = {
   ru: {
     // Общие
     welcome: 'Добро пожаловать',
+    welcomeBack: 'Добро пожаловать',
+    loginSubtitle: 'Войдите в свой аккаунт',
+    createAccount: 'Создать аккаунт',
+    registerSubtitle: 'Заполните форму для регистрации',
+    enterEmail: 'Введите email',
+    enterPassword: 'Введите пароль',
+    enterUsername: 'Введите имя пользователя',
+    noAccount: 'Нет аккаунта?',
+    haveAccount: 'Уже есть аккаунт?',
+    login: 'Войти',
+    register: 'Зарегистрироваться',
+    email: 'Email',
+    password: 'Пароль',
+    username: 'Имя пользователя',
+    confirmPassword: 'Подтверждение пароля',
+    passwordsDoNotMatch: 'Пароли не совпадают',
+    passwordMinLength: 'Пароль должен быть не менее 6 символов',
     posts: 'Посты',
     news: 'Новости',
     products: 'Товары',
@@ -13,6 +30,7 @@ const translations = {
     edit: 'Редактировать',
     delete: 'Удалить',
     close: 'Закрыть',
+    loading: 'Загрузка',
     
     // Посты
     postsManagement: 'Управление постами',
@@ -39,6 +57,7 @@ const translations = {
     newsCreated: 'Новая новость',
     newsUpdated: 'Новость обновлена',
     newsDeleted: 'Новость удалена',
+    clickToCreate: 'Нажмите кнопку "Создать новость", чтобы добавить первую!',
     
     // Товары
     productsManagement: 'Управление товарами',
@@ -84,10 +103,10 @@ const translations = {
     notifications: 'Уведомления',
     markAllRead: 'Все прочитаны',
     deleteAll: 'Удалить все',
-    noNotifications: 'Нет уведомлений',
+    deleteSelected: 'Удалить выбранные',
     selectAll: 'Выбрать все',
     deselectAll: 'Снять все',
-    deleteSelected: 'Удалить выбранные',
+    noNotifications: 'Нет уведомлений',
     markRead: 'Отметить прочитанным',
     
     // Профиль
@@ -95,11 +114,8 @@ const translations = {
     profile: 'Профиль',
     settings: 'Настройки',
     theme: 'Тема',
-    email: 'Email',
-    username: 'Имя пользователя',
     currentPassword: 'Текущий пароль (для смены)',
     newPassword: 'Новый пароль',
-    confirmPassword: 'Подтверждение пароля',
     logoutAccount: 'Выйти из аккаунта',
     
     // Настройки
@@ -124,13 +140,42 @@ const translations = {
     errorUpdating: 'Ошибка при обновлении',
     errorDeleting: 'Ошибка при удалении',
     fillAllFields: 'Все поля обязательны',
-    passwordsDoNotMatch: 'Пароли не совпадают',
-    passwordMinLength: 'Пароль должен быть не менее 6 символов',
-    updateError: 'Ошибка обновления профиля'
+    updateError: 'Ошибка обновления профиля',
+
+    // Декоративная панель
+    chatWithFriends: 'Чат с друзьями',
+    chatDescription: 'Общайтесь в реальном времени',
+    createPosts: 'Создавайте посты',
+    readNews: 'Читайте новости',
+    manageProducts: 'Управляйте товарами',
+    joinUs: 'Присоединяйтесь!',
+    joinDescription: 'Создайте аккаунт и начните общение',
+    free: 'Бесплатно',
+    secure: 'Безопасно',
+    convenient: 'Удобно',
+    selectTheme: 'Выбрать тему',
+    selectLanguage: 'Выбрать язык'
   },
   en: {
     // Common
     welcome: 'Welcome',
+    welcomeBack: 'Welcome Back',
+    loginSubtitle: 'Login to your account',
+    createAccount: 'Create Account',
+    registerSubtitle: 'Fill the form to register',
+    enterEmail: 'Enter email',
+    enterPassword: 'Enter password',
+    enterUsername: 'Enter username',
+    noAccount: "Don't have an account?",
+    haveAccount: 'Already have an account?',
+    login: 'Login',
+    register: 'Register',
+    email: 'Email',
+    password: 'Password',
+    username: 'Username',
+    confirmPassword: 'Confirm password',
+    passwordsDoNotMatch: 'Passwords do not match',
+    passwordMinLength: 'Password must be at least 6 characters',
     posts: 'Posts',
     news: 'News',
     products: 'Products',
@@ -142,6 +187,7 @@ const translations = {
     edit: 'Edit',
     delete: 'Delete',
     close: 'Close',
+    loading: 'Loading',
     
     // Posts
     postsManagement: 'Posts Management',
@@ -168,6 +214,7 @@ const translations = {
     newsCreated: 'New News',
     newsUpdated: 'News Updated',
     newsDeleted: 'News Deleted',
+    clickToCreate: 'Click "Create News" button to add your first!',
     
     // Products
     productsManagement: 'Products Management',
@@ -213,10 +260,10 @@ const translations = {
     notifications: 'Notifications',
     markAllRead: 'Mark all read',
     deleteAll: 'Delete all',
-    noNotifications: 'No notifications',
+    deleteSelected: 'Delete selected',
     selectAll: 'Select all',
     deselectAll: 'Deselect all',
-    deleteSelected: 'Delete selected',
+    noNotifications: 'No notifications',
     markRead: 'Mark as read',
     
     // Profile
@@ -224,11 +271,8 @@ const translations = {
     profile: 'Profile',
     settings: 'Settings',
     theme: 'Theme',
-    email: 'Email',
-    username: 'Username',
     currentPassword: 'Current password (for change)',
     newPassword: 'New password',
-    confirmPassword: 'Confirm password',
     logoutAccount: 'Logout',
     
     // Settings
@@ -253,9 +297,21 @@ const translations = {
     errorUpdating: 'Error updating',
     errorDeleting: 'Error deleting',
     fillAllFields: 'All fields are required',
-    passwordsDoNotMatch: 'Passwords do not match',
-    passwordMinLength: 'Password must be at least 6 characters',
-    updateError: 'Profile update error'
+    updateError: 'Profile update error',
+
+    // Decorative panel
+    chatWithFriends: 'Chat with friends',
+    chatDescription: 'Communicate in real time',
+    createPosts: 'Create posts',
+    readNews: 'Read news',
+    manageProducts: 'Manage products',
+    joinUs: 'Join us!',
+    joinDescription: 'Create an account and start communicating',
+    free: 'Free',
+    secure: 'Secure',
+    convenient: 'Convenient',
+    selectTheme: 'Select theme',
+    selectLanguage: 'Select language'
   }
 };
 

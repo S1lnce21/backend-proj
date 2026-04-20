@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { newsAPI } from '../services/api';
-import { notificationAPI } from '../services/notificationApi';
-import { useApp } from '../context/AppContext';
-import './styles/NewsManager.css';
+import { newsAPI } from '../../services/api';
+import { notificationAPI } from '../../services/notificationApi';
+import { useApp } from '../../context/AppContext';
+import '../styles/NewsManager.css';
 
 const NewsManager = ({ user }) => {
   const { t, theme } = useApp();

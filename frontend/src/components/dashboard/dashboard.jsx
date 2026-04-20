@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import PostsManager from './PostsManager';
 import NewsManager from './NewsManager';
 import ProductsManager from './ProductsManager';
-import NotificationBell from './NotificationBell';
-import UserMenu from './UserMenu';
-import { useApp } from '../context/AppContext';
-import './styles/Dashboard.css';
+import NotificationBell from '../layout/NotificationBell';
+import UserMenu from '../layout/UserMenu';
+import { useApp } from '../../context/AppContext';
+import '../styles/Dashboard.css';
 
 const Dashboard = ({ user, onLogout, onUpdateUser }) => {
   const { t, theme } = useApp();

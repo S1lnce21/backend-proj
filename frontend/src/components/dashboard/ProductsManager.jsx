@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { productsAPI } from '../services/api';
-import { notificationAPI } from '../services/notificationApi';
-import { useApp } from '../context/AppContext';
-import './styles/ProductsManager.css';
+import { productsAPI } from '../../services/api';
+import { notificationAPI } from '../../services/notificationApi';
+import { useApp } from '../../context/AppContext';
+import '../styles/ProductsManager.css';
 
 const ProductsManager = ({ user }) => {
   const { t, theme } = useApp();

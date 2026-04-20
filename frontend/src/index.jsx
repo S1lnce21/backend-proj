@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BotChat from './BotChat';
 import LiveChat from './LiveChat';
-import { useChatSocket } from '../hooks/useChatSocket';
+import { useChatSocket } from './hooks/useChatSocket';
 import './SupportChat.css';
 
 const SupportChat = ({ user }) => {

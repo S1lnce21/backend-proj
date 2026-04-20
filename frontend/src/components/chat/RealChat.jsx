@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { useApp } from '../context/AppContext';
-import './styles/RealChat.css';
+import { useApp } from '../../context/AppContext';
+import '../styles/RealChat.css';
 
 const RealChat = ({ user }) => {
   const { t, theme } = useApp();

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Login from './components/Login';
-import Register from './components/Register';
-import Dashboard from './components/dashboard';
-import RealChat from './components/RealChat';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import Dashboard from './components/dashboard/Dashboard';
+import RealChat from './components/chat/RealChat';
 import { AppProvider } from './context/AppContext';
 import { authAPI } from './services/api';
 import './App.css';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { authAPI } from '../services/api';
-import { useApp } from '../context/AppContext';
-import './styles/UserMenu.css';
+import { authAPI } from '../../services/api';
+import { useApp } from '../../context/AppContext';
+import '../styles/UserMenu.css';
 
 const UserMenu = ({ user, onLogout, onUpdateUser }) => {
   const { t, language, setLanguage, theme, setTheme, notificationsEnabled, setNotificationsEnabled, soundEnabled, setSoundEnabled } = useApp();
