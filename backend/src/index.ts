@@ -10,6 +10,7 @@ import productsRouter from "./api/products";
 import notificationsRouter from "./api/notifications";
 import { setupChatSocket } from './socket/chatSocket';
 import { notificationService } from './services/notificationService';
+import { setupWebSocket } from './socket/websocket';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -24,19 +25,29 @@ const io = new Server(httpServer, {
 });
 
 notificationService.setIo(io);
-
 setupChatSocket(io);
+setupWebSocket(io);
 
 io.on('connection', (socket) => {
-  console.log('🔔 Пользователь подключен к уведомлениям:', socket.id);
+  console.log('🔌 Новое WebSocket соединение:', socket.id);
   
-  socket.on('join-notifications', (userId: number) => {
+  socket.on('join-user', (userId: number) => {
     socket.join(`user_${userId}`);
-    console.log(`📢 Пользователь ${userId} подписан на уведомления`);
+    console.log(`👤 Пользователь ${userId} присоединился к своей комнате`);
+  });
+  
+  socket.on('join-room', (roomId: string) => {
+    socket.join(roomId);
+    console.log(`📢 Сокет ${socket.id} присоединился к комнате ${roomId}`);
+  });
+  
+  socket.on('leave-room', (roomId: string) => {
+    socket.leave(roomId);
+    console.log(`📢 Сокет ${socket.id} покинул комнату ${roomId}`);
   });
   
   socket.on('disconnect', () => {
-    console.log('🔔 Пользователь отключен от уведомлений:', socket.id);
+    console.log('🔌 WebSocket отключен:', socket.id);
   });
 });
 
@@ -65,4 +76,7 @@ httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`💬 Chat Socket.IO ready`);
   console.log(`🔔 Notifications Socket.IO ready`);
+  console.log(`🌐 WebSocket ready`);
 });
+
+export { io };

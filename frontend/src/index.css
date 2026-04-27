@@ -83,3 +83,32 @@ body.dark .error-message {
   color: #ff8888;
   border-color: #8b3a3a;
 }
+
+.emoji, .icon, .chat-icon, .decorative-icon, .auth-logo {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+body.dark .emoji,
+body.dark .icon,
+body.dark .chat-icon,
+body.dark .decorative-icon,
+body.dark .auth-logo {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+body.dark .message-user .message-text,
+body.dark .message-avatar,
+body.dark .bot-avatar,
+body.dark .chat-header .bot-avatar {
+  filter: brightness(1.05);
+}
+
+button .emoji,
+button .icon {
+  filter: none;
+}
+
+body.dark button .emoji,
+body.dark button .icon {
+  filter: brightness(1.1);
+}
