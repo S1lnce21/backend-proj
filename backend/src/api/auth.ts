@@ -82,7 +82,7 @@ router.post("/register", async (req: Request, res: Response) => {
     updateGlobalUsers();
     
     const token = jwt.sign(
-      { userId: newUser.id, email: newUser.email, role: newUser.role, isBanned: newUser.isBanned },
+      { userId: newUser.id, email: newUser.email, role: newUser.role, isBanned: newUser.isBanned, username: newUser.username },
       process.env.JWT_SECRET || "default_secret_key",
       { expiresIn: '7d' }
     );
@@ -123,7 +123,7 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role, isBanned: user.isBanned },
+      { userId: user.id, email: user.email, role: user.role, isBanned: user.isBanned, username: user.username },
       process.env.JWT_SECRET || "default_secret_key",
       { expiresIn: '7d' }
     );
@@ -154,6 +154,7 @@ router.get("/me", async (req: Request, res: Response) => {
       email: string;
       role: string;
       isBanned: boolean;
+      username: string;
     };
     
     const user = users.find(u => u.id === decoded.userId);
@@ -194,7 +195,7 @@ router.put("/profile", async (req: Request, res: Response) => {
     
     const { username, currentPassword, newPassword } = req.body;
     
-    if (username && username.trim()) {
+    if (username && username.trim() && username !== users[userIndex].username) {
       const existingUser = users.find(u => u.username === username && u.id !== decoded.userId);
       if (existingUser) {
         return res.status(400).json({ error: "Имя пользователя уже занято" });
@@ -217,9 +218,22 @@ router.put("/profile", async (req: Request, res: Response) => {
       users[userIndex].password = hashedNewPassword;
     }
     
+    const newToken = jwt.sign(
+      { userId: users[userIndex].id, email: users[userIndex].email, role: users[userIndex].role, isBanned: users[userIndex].isBanned, username: users[userIndex].username },
+      process.env.JWT_SECRET || "default_secret_key",
+      { expiresIn: '7d' }
+    );
+    
+    res.cookie('token', newToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax'
+    });
+    
     const { password: _, ...userWithoutPassword } = users[userIndex];
-    res.json({ user: userWithoutPassword, message: "Профиль успешно обновлен" });
+    res.json({ user: userWithoutPassword, token: newToken, message: "Профиль успешно обновлен" });
   } catch (error) {
+    console.error("Ошибка обновления профиля:", error);
     res.status(500).json({ error: "Ошибка обновления профиля" });
   }
 });
@@ -378,7 +392,7 @@ router.delete("/users/:id", async (req: Request, res: Response) => {
     res.json({ message: "Пользователь удален" });
   } catch (error) {
     console.error("Ошибка удаления пользователя:", error);
-    res.status(500).json({ error: "Ошибка удаления пользователя" });
+    res.status(500).json({ error: "Ошибка删除ления пользователя" });
   }
 });
 

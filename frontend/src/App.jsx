@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
-import RealChat from './components/chat/RealChat';
+import SupportButton from './components/support/SupportButton';
 import { AppProvider } from './context/AppContext';
 import { authAPI } from './services/api';
 import './App.css';
@@ -90,7 +90,7 @@ function AppContent() {
     return (
       <>
         <Dashboard user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
-        <RealChat user={user} />
+        <SupportButton user={user} />
       </>
     );
   }

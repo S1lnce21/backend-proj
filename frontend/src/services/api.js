@@ -69,4 +69,25 @@ export const productsAPI = {
   deleteProduct: (id) => api.delete(`/products/${id}`),
 };
 
+export const ticketsAPI = {
+  getMyTickets: () => api.get('/tickets'),
+  getAllTickets: () => api.get('/tickets/all'),
+  createTicket: (data) => api.post('/tickets', data),
+  sendMessage: (id, data) => api.post(`/tickets/${id}/message`, data),
+  assignTicket: (id) => api.put(`/tickets/${id}/assign`),
+  closeTicket: (id) => api.put(`/tickets/${id}/close`),
+  reopenTicket: (id) => api.put(`/tickets/${id}/reopen`),
+  archiveTicket: (id) => api.put(`/tickets/${id}/archive`),
+  deleteTicket: (id) => api.delete(`/tickets/${id}`),
+};
+
+export const notificationAPI = {
+  getAll: () => api.get('/notifications'),
+  create: (data) => api.post('/notifications', data),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put('/notifications/read-all'),
+  delete: (id) => api.delete(`/notifications/${id}`),
+  deleteAll: () => api.delete('/notifications/clear-all'),
+};
+
 export default api;

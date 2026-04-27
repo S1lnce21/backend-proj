@@ -16,9 +16,9 @@ const Dashboard = ({ user, onLogout, onUpdateUser }) => {
   const isModerator = user?.role === 'moderator';
 
   const getRoleLabel = () => {
-    if (user?.role === 'admin') return '👑 Администратор';
-    if (user?.role === 'moderator') return '🛡️ Модератор';
-    return '👤 Пользователь';
+    if (user?.role === 'admin') return t('adminRole');
+    if (user?.role === 'moderator') return t('moderatorRole');
+    return t('userRole');
   };
 
   const getRoleClass = () => {
@@ -57,7 +57,7 @@ const Dashboard = ({ user, onLogout, onUpdateUser }) => {
           </button>
           {isAdmin && (
             <button className={activeTab === 'admin' ? 'tab active' : 'tab'} onClick={() => setActiveTab('admin')}>
-              👑 {t('admin') || 'Администрирование'}
+              👑 {t('adminPanel')}
             </button>
           )}
         </div>

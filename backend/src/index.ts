@@ -11,6 +11,7 @@ import notificationsRouter from "./api/notifications";
 import { setupChatSocket } from './socket/chatSocket';
 import { notificationService } from './services/notificationService';
 import { setupWebSocket } from './socket/websocket';
+import ticketsRouter from "./api/tickets";
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -66,6 +67,7 @@ app.use("/api/posts", postsRouter);
 app.use("/api/news", newsRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use("/api/tickets", ticketsRouter);
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
