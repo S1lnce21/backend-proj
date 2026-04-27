@@ -17,6 +17,10 @@
   animation: slideUp 0.5s ease;
 }
 
+body.dark .dashboard-box {
+  background: #1e1e2e;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -75,6 +79,11 @@
   padding: 5px;
 }
 
+body.dark .tabs {
+  background: #1e1e2e;
+  border-bottom-color: #3a3a4e;
+}
+
 .tab {
   padding: 12px 28px;
   background: transparent;
@@ -88,10 +97,19 @@
   border-radius: 8px;
 }
 
+body.dark .tab {
+  color: #aaa;
+}
+
 .tab:hover {
   color: #667eea;
   background: #f8f9ff;
   transform: translateY(-2px);
+}
+
+body.dark .tab:hover {
+  background: #2a2a3e;
+  color: #667eea;
 }
 
 .tab.active {
@@ -140,33 +158,33 @@
   transform: translateY(0);
 }
 
-body.dark .dashboard-box {
-  background: #1e1e2e;
+.user-role-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 15px;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-body.dark .user-info {
-  background: linear-gradient(135deg, #2a2a3e 0%, #1e1e2e 100%);
-}
-
-body.dark .user-info h3,
-body.dark .user-info p {
-  color: #ddd;
-}
-
-body.dark .tabs {
-  background: #1e1e2e;
-}
-
-body.dark .tab {
-  color: #aaa;
-}
-
-body.dark .tab:hover {
-  background: #2a2a3e;
-  color: #667eea;
-}
-
-body.dark .tab.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.user-role-badge.role-admin {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.user-role-badge.role-moderator {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.user-role-badge.role-user {
+  background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }

@@ -1,5 +1,6 @@
 import express, { Response } from "express";
 import { authenticateToken, AuthRequest } from "../middleware/authMiddleware";
+import { io } from "../index";
 
 interface Product {
   id: number;
@@ -19,6 +20,11 @@ const getUsernameById = (userId: number): string => {
   return user?.username || `user_${userId}`;
 };
 
+const getUserRoleById = (userId: number): string => {
+  const user = (global as any).usersForPosts?.find((u: any) => u.id === userId);
+  return user?.role || 'user';
+};
+
 let products: Product[] = [];
 let nextProductId = 1;
 
@@ -32,7 +38,8 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...product,
       author: {
         id: product.authorId,
-        username: getUsernameById(product.authorId)
+        username: getUsernameById(product.authorId),
+        role: getUserRoleById(product.authorId)
       }
     }));
     res.json({ products: productsWithAuthor });
@@ -58,7 +65,8 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...product,
         author: {
           id: product.authorId,
-          username: getUsernameById(product.authorId)
+          username: getUsernameById(product.authorId),
+          role: getUserRoleById(product.authorId)
         }
       }
     });
@@ -93,17 +101,19 @@ router.post("/", async (req: AuthRequest, res: Response) => {
     };
 
     products.push(newProduct);
-    console.log(`✅ Товар создан: ${newProduct.name} (ID: ${newProduct.id})`);
     
-    res.status(201).json({ 
-      product: {
-        ...newProduct,
-        author: {
-          id: req.user.userId,
-          username: getUsernameById(req.user.userId)
-        }
+    const productWithAuthor = {
+      ...newProduct,
+      author: {
+        id: req.user.userId,
+        username: getUsernameById(req.user.userId),
+        role: req.user.role
       }
-    });
+    };
+    
+    io.emit('product_created', productWithAuthor);
+    
+    res.status(201).json({ product: productWithAuthor });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при создании товара" });
   }
@@ -125,7 +135,12 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Товар не найден" });
     }
 
-    if (products[productIndex].authorId !== req.user.userId) {
+    const product = products[productIndex];
+    const isAuthor = product.authorId === req.user.userId;
+    const isModerator = req.user.role === 'moderator';
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isAuthor && !isModerator && !isAdmin) {
       return res.status(403).json({ error: "Нет прав на редактирование" });
     }
 
@@ -139,15 +154,18 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
     if (imageUrl !== undefined) products[productIndex].imageUrl = imageUrl;
     products[productIndex].updatedAt = new Date();
 
-    res.json({
-      product: {
-        ...products[productIndex],
-        author: {
-          id: products[productIndex].authorId,
-          username: getUsernameById(products[productIndex].authorId)
-        }
+    const updatedProduct = {
+      ...products[productIndex],
+      author: {
+        id: products[productIndex].authorId,
+        username: getUsernameById(products[productIndex].authorId),
+        role: getUserRoleById(products[productIndex].authorId)
       }
-    });
+    };
+    
+    io.emit('product_updated', updatedProduct);
+
+    res.json({ product: updatedProduct });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при обновлении товара" });
   }
@@ -169,12 +187,22 @@ router.delete("/:id", async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Товар не найден" });
     }
 
-    if (products[productIndex].authorId !== req.user.userId) {
+    const product = products[productIndex];
+    const isAuthor = product.authorId === req.user.userId;
+    const isModerator = req.user.role === 'moderator';
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isAuthor && !isModerator && !isAdmin) {
       return res.status(403).json({ error: "Нет прав на удаление" });
     }
 
+    const deletedProduct = products[productIndex];
     products.splice(productIndex, 1);
-    console.log(`🗑️ Товар удален (ID: ${id})`);
+    
+    io.emit('product_deleted', { id });
+    
+    const deletedBy = isAdmin ? 'администратором' : (isModerator ? 'модератором' : 'автором');
+    console.log(`🗑️ Товар удален ${deletedBy}: ${deletedProduct.name} (ID: ${id})`);
     
     res.json({ message: "Товар успешно удален" });
   } catch (error) {

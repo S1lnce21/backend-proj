@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import { productsAPI } from '../../services/api';
 import { notificationAPI } from '../../services/notificationApi';
 import { useApp } from '../../context/AppContext';
 import '../styles/ProductsManager.css';
+
+let socket = null;
 
 const ProductsManager = ({ user }) => {
   const { t, theme } = useApp();
@@ -21,6 +24,10 @@ const ProductsManager = ({ user }) => {
   const [showForm, setShowForm] = useState(false);
   const [imageError, setImageError] = useState({});
 
+  const isAdmin = user?.role === 'admin';
+  const isModerator = user?.role === 'moderator';
+  const canDelete = isAdmin || isModerator;
+
   const categories = [
     { value: 'electronics', label: t('electronics') },
     { value: 'clothing', label: t('clothing') },
@@ -32,7 +39,32 @@ const ProductsManager = ({ user }) => {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+    
+    if (!socket) {
+      socket = io('http://localhost:3000');
+      socket.emit('join-user', user?.id);
+      
+      socket.on('product_created', (newProduct) => {
+        setProducts(prev => [newProduct, ...prev]);
+      });
+      
+      socket.on('product_updated', (updatedProduct) => {
+        setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+      });
+      
+      socket.on('product_deleted', ({ id }) => {
+        setProducts(prev => prev.filter(p => p.id !== id));
+      });
+    }
+    
+    return () => {
+      if (socket) {
+        socket.off('product_created');
+        socket.off('product_updated');
+        socket.off('product_deleted');
+      }
+    };
+  }, [user?.id]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -52,7 +84,6 @@ const ProductsManager = ({ user }) => {
     setError('');
     try {
       const response = await productsAPI.createProduct(formData);
-      setProducts([response.data.product, ...products]);
       setFormData({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' });
       setShowForm(false);
       await notificationAPI.create({ title: t('productCreated'), message: `${t('productCreated')} "${response.data.product.name}"`, type: 'success' });
@@ -66,7 +97,6 @@ const ProductsManager = ({ user }) => {
     setError('');
     try {
       const response = await productsAPI.updateProduct(editingProduct.id, formData);
-      setProducts(products.map(p => p.id === editingProduct.id ? response.data.product : p));
       setEditingProduct(null);
       setFormData({ name: '', description: '', price: '', category: '', stock: '', imageUrl: '' });
       setShowForm(false);
@@ -76,12 +106,17 @@ const ProductsManager = ({ user }) => {
     }
   };
 
-  const handleDeleteProduct = async (id) => {
-    if (!window.confirm('Вы уверены?')) return;
+  const handleDeleteProduct = async (id, authorId) => {
+    const canDeleteProduct = canDelete || authorId === user?.id;
+    if (!canDeleteProduct) {
+      setError('У вас нет прав на удаление этого товара');
+      return;
+    }
+    
+    if (!window.confirm('Вы уверены, что хотите удалить этот товар?')) return;
     try {
       const deletedProduct = products.find(p => p.id === id);
       await productsAPI.deleteProduct(id);
-      setProducts(products.filter(p => p.id !== id));
       await notificationAPI.create({ title: t('productDeleted'), message: `${t('productDeleted')} "${deletedProduct?.name}"`, type: 'warning' });
     } catch (err) {
       setError(err.response?.data?.error || t('errorDeleting'));
@@ -89,6 +124,10 @@ const ProductsManager = ({ user }) => {
   };
 
   const startEdit = (product) => {
+    if (!canDelete && product.authorId !== user?.id) {
+      setError('У вас нет прав на редактирование этого товара');
+      return;
+    }
     setEditingProduct(product);
     setFormData({
       name: product.name,
@@ -105,50 +144,11 @@ const ProductsManager = ({ user }) => {
     setImageError(prev => ({ ...prev, [productId]: true }));
   };
 
-  const deleteBtnStyle = {
-    background: '#e74c3c',
-    color: 'white',
-    border: 'none',
-    padding: '8px 24px',
-    borderRadius: '25px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '600',
-    transition: 'all 0.3s',
-    boxShadow: '0 2px 8px rgba(231, 76, 60, 0.3)'
-  };
-
-  const editBtnStyle = {
-    background: '#3498db',
-    color: 'white',
-    border: 'none',
-    padding: '8px 24px',
-    borderRadius: '25px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '600',
-    transition: 'all 0.3s',
-    boxShadow: '0 2px 8px rgba(52, 152, 219, 0.3)'
-  };
-
-  const createBtnStyle = {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: 'white',
-    border: 'none',
-    padding: '12px 28px',
-    borderRadius: '25px',
-    cursor: 'pointer',
-    fontSize: '15px',
-    fontWeight: '600',
-    transition: 'all 0.3s',
-    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
-  };
-
   return (
     <div className={`products-manager ${theme}`}>
       <div className="section-header">
         <h2>🛍️ {t('productsManagement')}</h2>
-        <button onClick={() => setShowForm(!showForm)} style={createBtnStyle} onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.4)'; }} onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)'; }}>
+        <button onClick={() => setShowForm(!showForm)} className="create-product-btn">
           {showForm ? t('cancel') : `+ ${t('addProduct')}`}
         </button>
       </div>
@@ -156,7 +156,7 @@ const ProductsManager = ({ user }) => {
       {error && <div className="error-message">{error}</div>}
 
       {showForm && (
-        <form onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct} className={`product-form ${theme}`}>
+        <form onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct} className="product-form">
           <h3>{editingProduct ? t('editProduct') : t('addProduct')}</h3>
           <input type="text" placeholder={t('productName')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
           <textarea placeholder={t('description')} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required rows="3" />
@@ -179,34 +179,41 @@ const ProductsManager = ({ user }) => {
       {loading ? (
         <div className="loading">{t('loading')}...</div>
       ) : products.length === 0 ? (
-        <div className={`no-items ${theme}`}>{t('noProducts')}</div>
+        <div className="no-items">{t('noProducts')}</div>
       ) : (
         <div className="products-grid">
-          {products.map(product => (
-            <div key={product.id} className={`product-card ${theme}`}>
-              {product.imageUrl && !imageError[product.id] && <img src={product.imageUrl} alt={product.name} className="product-image" onError={() => handleImageError(product.id)} />}
-              {product.imageUrl && imageError[product.id] && <div className="product-image-placeholder">🖼️</div>}
-              <div className="product-info">
-                <h3>{product.name}</h3>
-                <span className="product-category">{categories.find(c => c.value === product.category)?.label || product.category}</span>
-                <p className="product-description">{product.description}</p>
-                <div className="product-footer">
-                  <span className="product-price">💰 {product.price} ₽</span>
-                  <span className="product-stock">📦 {t('inStock')}: {product.stock}</span>
-                </div>
-                <div className="product-meta">
-                  <small>👤 {product.author.username}</small>
-                  <small>📅 {new Date(product.createdAt).toLocaleDateString()}</small>
-                </div>
-                {product.authorId === user?.id && (
-                  <div className="product-actions">
-                    <button onClick={() => startEdit(product)} style={editBtnStyle} onMouseEnter={(e) => { e.target.style.background = '#2980b9'; e.target.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.target.style.background = '#3498db'; e.target.style.transform = 'translateY(0)'; }}>{t('edit')}</button>
-                    <button onClick={() => handleDeleteProduct(product.id)} style={deleteBtnStyle} onMouseEnter={(e) => { e.target.style.background = '#c0392b'; e.target.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.target.style.background = '#e74c3c'; e.target.style.transform = 'translateY(0)'; }}>{t('delete')}</button>
+          {products.map(product => {
+            const canEditDelete = canDelete || product.authorId === user?.id;
+            return (
+              <div key={product.id} className="product-card">
+                {product.imageUrl && !imageError[product.id] && <img src={product.imageUrl} alt={product.name} className="product-image" onError={() => handleImageError(product.id)} />}
+                {product.imageUrl && imageError[product.id] && <div className="product-image-placeholder">🖼️</div>}
+                <div className="product-info">
+                  <h3>{product.name}</h3>
+                  <span className="product-category">{categories.find(c => c.value === product.category)?.label || product.category}</span>
+                  <p className="product-description">{product.description}</p>
+                  <div className="product-footer">
+                    <span className="product-price">💰 {product.price} ₽</span>
+                    <span className="product-stock">📦 {t('inStock')}: {product.stock}</span>
                   </div>
-                )}
+                  <div className="product-meta">
+                    <small>
+                      👤 {product.author.username}
+                      {product.author.role === 'admin' && <span className="role-tag admin-tag">👑 Admin</span>}
+                      {product.author.role === 'moderator' && <span className="role-tag moderator-tag">🛡️ Mod</span>}
+                    </small>
+                    <small>📅 {new Date(product.createdAt).toLocaleDateString()}</small>
+                  </div>
+                  {canEditDelete && (
+                    <div className="product-actions">
+                      <button onClick={() => startEdit(product)} className="edit-product-btn">{t('edit')}</button>
+                      <button onClick={() => handleDeleteProduct(product.id, product.authorId)} className="delete-product-btn">{t('delete')}</button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -290,3 +290,86 @@ body.dark .error-message {
   background-color: #3a1a1a;
   color: #ff8888;
 }
+
+.role-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 8px;
+  color: white;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-tag {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.moderator-tag {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-tag {
+  background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.create-product-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.create-product-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.edit-product-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.edit-product-btn:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.delete-product-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.delete-product-btn:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}

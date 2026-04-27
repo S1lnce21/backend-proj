@@ -117,6 +117,7 @@ const translations = {
     currentPassword: 'Текущий пароль (для смены)',
     newPassword: 'Новый пароль',
     logoutAccount: 'Выйти из аккаунта',
+    admin: 'Администрирование',
     
     // Настройки
     language: 'Язык',
@@ -274,6 +275,7 @@ const translations = {
     currentPassword: 'Current password (for change)',
     newPassword: 'New password',
     logoutAccount: 'Logout',
+    admin: 'Administration',
     
     // Settings
     language: 'Language',

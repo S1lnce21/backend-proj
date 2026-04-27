@@ -38,7 +38,11 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
-  updateProfile: (data) => api.put('/auth/profile', data),  // НОВЫЙ МЕТОД
+  updateProfile: (data) => api.put('/auth/profile', data),
+  getAllUsers: () => api.get('/auth/users'),
+  updateUserRole: (userId, data) => api.put(`/auth/users/${userId}/role`, data),
+  banUser: (userId, data) => api.put(`/auth/users/${userId}/ban`, data),
+  deleteUser: (userId) => api.delete(`/auth/users/${userId}`),
 };
 
 export const postsAPI = {

@@ -1,5 +1,6 @@
 import express, { Response } from "express";
 import { authenticateToken, AuthRequest } from "../middleware/authMiddleware";
+import { io } from "../index";
 
 interface Post {
   id: number;
@@ -10,18 +11,18 @@ interface Post {
   updatedAt: Date;
 }
 
-declare global {
-  var usersForPosts: any[];
-}
-global.usersForPosts = global.usersForPosts || [];
-
-let posts: Post[] = [];
-let nextPostId = 1;
-
 const getUsernameById = (userId: number): string => {
   const user = (global as any).usersForPosts?.find((u: any) => u.id === userId);
   return user?.username || `user_${userId}`;
 };
+
+const getUserRoleById = (userId: number): string => {
+  const user = (global as any).usersForPosts?.find((u: any) => u.id === userId);
+  return user?.role || 'user';
+};
+
+let posts: Post[] = [];
+let nextPostId = 1;
 
 const router = express.Router();
 
@@ -33,7 +34,8 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...post,
       author: {
         id: post.authorId,
-        username: getUsernameById(post.authorId)
+        username: getUsernameById(post.authorId),
+        role: getUserRoleById(post.authorId)
       }
     }));
     res.json({ posts: postsWithAuthor });
@@ -54,7 +56,8 @@ router.get("/my", async (req: AuthRequest, res: Response) => {
         ...post,
         author: {
           id: post.authorId,
-          username: getUsernameById(post.authorId)
+          username: getUsernameById(post.authorId),
+          role: getUserRoleById(post.authorId)
         }
       }));
     
@@ -81,7 +84,8 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...post,
         author: {
           id: post.authorId,
-          username: getUsernameById(post.authorId)
+          username: getUsernameById(post.authorId),
+          role: getUserRoleById(post.authorId)
         }
       }
     });
@@ -112,17 +116,19 @@ router.post("/", async (req: AuthRequest, res: Response) => {
     };
 
     posts.push(newPost);
-    console.log(`✅ Пост создан: ${newPost.title} (ID: ${newPost.id}) by user ${req.user.userId}`);
     
-    res.status(201).json({ 
-      post: {
-        ...newPost,
-        author: {
-          id: req.user.userId,
-          username: getUsernameById(req.user.userId)
-        }
+    const postWithAuthor = {
+      ...newPost,
+      author: {
+        id: req.user.userId,
+        username: getUsernameById(req.user.userId),
+        role: req.user.role
       }
-    });
+    };
+    
+    io.emit('post_created', postWithAuthor);
+    
+    res.status(201).json({ post: postWithAuthor });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при создании поста" });
   }
@@ -144,7 +150,12 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Пост не найден" });
     }
 
-    if (posts[postIndex].authorId !== req.user.userId) {
+    const post = posts[postIndex];
+    const isAuthor = post.authorId === req.user.userId;
+    const isModerator = req.user.role === 'moderator';
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isAuthor && !isModerator && !isAdmin) {
       return res.status(403).json({ error: "Нет прав на редактирование" });
     }
 
@@ -154,15 +165,18 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
     if (content) posts[postIndex].content = content;
     posts[postIndex].updatedAt = new Date();
 
-    res.json({
-      post: {
-        ...posts[postIndex],
-        author: {
-          id: posts[postIndex].authorId,
-          username: getUsernameById(posts[postIndex].authorId)
-        }
+    const updatedPost = {
+      ...posts[postIndex],
+      author: {
+        id: posts[postIndex].authorId,
+        username: getUsernameById(posts[postIndex].authorId),
+        role: getUserRoleById(posts[postIndex].authorId)
       }
-    });
+    };
+    
+    io.emit('post_updated', updatedPost);
+
+    res.json({ post: updatedPost });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при обновлении поста" });
   }
@@ -184,12 +198,22 @@ router.delete("/:id", async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Пост не найден" });
     }
 
-    if (posts[postIndex].authorId !== req.user.userId) {
+    const post = posts[postIndex];
+    const isAuthor = post.authorId === req.user.userId;
+    const isModerator = req.user.role === 'moderator';
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isAuthor && !isModerator && !isAdmin) {
       return res.status(403).json({ error: "Нет прав на удаление" });
     }
 
+    const deletedPost = posts[postIndex];
     posts.splice(postIndex, 1);
-    console.log(`🗑️ Пост удален (ID: ${id})`);
+    
+    io.emit('post_deleted', { id });
+    
+    const deletedBy = isAdmin ? 'администратором' : (isModerator ? 'модератором' : 'автором');
+    console.log(`🗑️ Пост удален ${deletedBy}: ${deletedPost.title} (ID: ${id})`);
     
     res.json({ message: "Пост успешно удален" });
   } catch (error) {

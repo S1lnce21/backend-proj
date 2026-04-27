@@ -1,5 +1,6 @@
 import express, { Response } from "express";
 import { authenticateToken, AuthRequest } from "../middleware/authMiddleware";
+import { io } from "../index";
 
 interface News {
   id: number;
@@ -16,6 +17,11 @@ const getUsernameById = (userId: number): string => {
   return user?.username || `user_${userId}`;
 };
 
+const getUserRoleById = (userId: number): string => {
+  const user = (global as any).usersForPosts?.find((u: any) => u.id === userId);
+  return user?.role || 'user';
+};
+
 let news: News[] = [];
 let nextNewsId = 1;
 
@@ -29,7 +35,8 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       ...item,
       author: {
         id: item.authorId,
-        username: getUsernameById(item.authorId)
+        username: getUsernameById(item.authorId),
+        role: getUserRoleById(item.authorId)
       }
     }));
     res.json({ news: newsWithAuthor });
@@ -55,7 +62,8 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
         ...newsItem,
         author: {
           id: newsItem.authorId,
-          username: getUsernameById(newsItem.authorId)
+          username: getUsernameById(newsItem.authorId),
+          role: getUserRoleById(newsItem.authorId)
         }
       }
     });
@@ -87,17 +95,19 @@ router.post("/", async (req: AuthRequest, res: Response) => {
     };
 
     news.push(newNews);
-    console.log(`✅ Новость создана: ${newNews.title} (ID: ${newNews.id})`);
     
-    res.status(201).json({ 
-      news: {
-        ...newNews,
-        author: {
-          id: req.user.userId,
-          username: getUsernameById(req.user.userId)
-        }
+    const newsWithAuthor = {
+      ...newNews,
+      author: {
+        id: req.user.userId,
+        username: getUsernameById(req.user.userId),
+        role: req.user.role
       }
-    });
+    };
+    
+    io.emit('news_created', newsWithAuthor);
+    
+    res.status(201).json({ news: newsWithAuthor });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при создании новости" });
   }
@@ -119,7 +129,12 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Новость не найдена" });
     }
 
-    if (news[newsIndex].authorId !== req.user.userId) {
+    const newsItem = news[newsIndex];
+    const isAuthor = newsItem.authorId === req.user.userId;
+    const isModerator = req.user.role === 'moderator';
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isAuthor && !isModerator && !isAdmin) {
       return res.status(403).json({ error: "Нет прав на редактирование" });
     }
 
@@ -130,15 +145,18 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
     if (imageUrl !== undefined) news[newsIndex].imageUrl = imageUrl;
     news[newsIndex].updatedAt = new Date();
 
-    res.json({
-      news: {
-        ...news[newsIndex],
-        author: {
-          id: news[newsIndex].authorId,
-          username: getUsernameById(news[newsIndex].authorId)
-        }
+    const updatedNews = {
+      ...news[newsIndex],
+      author: {
+        id: news[newsIndex].authorId,
+        username: getUsernameById(news[newsIndex].authorId),
+        role: getUserRoleById(news[newsIndex].authorId)
       }
-    });
+    };
+    
+    io.emit('news_updated', updatedNews);
+
+    res.json({ news: updatedNews });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при обновлении новости" });
   }
@@ -160,12 +178,22 @@ router.delete("/:id", async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Новость не найдена" });
     }
 
-    if (news[newsIndex].authorId !== req.user.userId) {
+    const newsItem = news[newsIndex];
+    const isAuthor = newsItem.authorId === req.user.userId;
+    const isModerator = req.user.role === 'moderator';
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isAuthor && !isModerator && !isAdmin) {
       return res.status(403).json({ error: "Нет прав на удаление" });
     }
 
+    const deletedNews = news[newsIndex];
     news.splice(newsIndex, 1);
-    console.log(`🗑️ Новость удалена (ID: ${id})`);
+    
+    io.emit('news_deleted', { id });
+    
+    const deletedBy = isAdmin ? 'администратором' : (isModerator ? 'модератором' : 'автором');
+    console.log(`🗑️ Новость удалена ${deletedBy}: ${deletedNews.title} (ID: ${id})`);
     
     res.json({ message: "Новость успешно удалена" });
   } catch (error) {

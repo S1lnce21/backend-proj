@@ -19,6 +19,10 @@ const PostsManager = ({ user }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 3;
 
+  const isAdmin = user?.role === 'admin';
+  const isModerator = user?.role === 'moderator';
+  const canDelete = isAdmin || isModerator;
+
   useEffect(() => {
     fetchPosts();
     
@@ -93,8 +97,14 @@ const PostsManager = ({ user }) => {
     }
   };
 
-  const handleDeletePost = async (id) => {
-    if (!window.confirm('Вы уверены?')) return;
+  const handleDeletePost = async (id, authorId) => {
+    const canDeletePost = canDelete || authorId === user?.id;
+    if (!canDeletePost) {
+      setError('У вас нет прав на удаление этого поста');
+      return;
+    }
+    
+    if (!window.confirm('Вы уверены, что хотите удалить этот пост?')) return;
     setError('');
     try {
       const deletedPost = posts.find(p => p.id === id);
@@ -106,6 +116,10 @@ const PostsManager = ({ user }) => {
   };
 
   const startEdit = (post) => {
+    if (!canDelete && post.authorId !== user?.id) {
+      setError('У вас нет прав на редактирование этого поста');
+      return;
+    }
     setEditingPost(post);
     setFormData({ title: post.title, content: post.content || '' });
     setShowForm(true);
@@ -121,6 +135,32 @@ const PostsManager = ({ user }) => {
   const goToPage = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const deleteBtnStyle = {
+    background: '#e74c3c',
+    color: 'white',
+    border: 'none',
+    padding: '8px 24px',
+    borderRadius: '25px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    boxShadow: '0 2px 8px rgba(231, 76, 60, 0.3)'
+  };
+
+  const editBtnStyle = {
+    background: '#3498db',
+    color: 'white',
+    border: 'none',
+    padding: '8px 24px',
+    borderRadius: '25px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    boxShadow: '0 2px 8px rgba(52, 152, 219, 0.3)'
   };
 
   return (
@@ -161,24 +201,31 @@ const PostsManager = ({ user }) => {
       ) : (
         <>
           <div className="posts-list">
-            {currentPosts.map(post => (
-              <div key={post.id} className="post-card">
-                <div className="post-header">
-                  <h3 className="post-title">{post.title}</h3>
-                  <div className="post-meta">
-                    <span className="post-author">{t('author')}: {post.author.username}</span>
-                    <span className="post-date">{new Date(post.createdAt).toLocaleString()}</span>
+            {currentPosts.map(post => {
+              const canEditDelete = canDelete || post.authorId === user?.id;
+              return (
+                <div key={post.id} className="post-card">
+                  <div className="post-header">
+                    <h3 className="post-title">{post.title}</h3>
+                    <div className="post-meta">
+                      <span className="post-author">
+                        {t('author')}: {post.author.username}
+                        {post.author.role === 'admin' && <span className="role-tag admin-tag">👑 Admin</span>}
+                        {post.author.role === 'moderator' && <span className="role-tag moderator-tag">🛡️ Mod</span>}
+                      </span>
+                      <span className="post-date">{new Date(post.createdAt).toLocaleString()}</span>
+                    </div>
                   </div>
+                  <p className="post-content">{post.content}</p>
+                  {canEditDelete && (
+                    <div className="post-actions">
+                      <button onClick={() => startEdit(post)} style={editBtnStyle}>{t('edit')}</button>
+                      <button onClick={() => handleDeletePost(post.id, post.authorId)} style={deleteBtnStyle}>{t('delete')}</button>
+                    </div>
+                  )}
                 </div>
-                <p className="post-content">{post.content}</p>
-                {post.authorId === user?.id && (
-                  <div className="post-actions">
-                    <button onClick={() => startEdit(post)} className="edit-post-btn">{t('edit')}</button>
-                    <button onClick={() => handleDeletePost(post.id)} className="delete-post-btn">{t('delete')}</button>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {totalPages > 1 && (

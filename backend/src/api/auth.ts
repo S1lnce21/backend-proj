@@ -7,6 +7,8 @@ export interface User {
   username: string;
   email: string;
   password: string;
+  role: 'admin' | 'moderator' | 'user';
+  isBanned: boolean;
   createdAt: Date;
 }
 
@@ -21,6 +23,8 @@ const initTestUsers = async () => {
       username: "testuser",
       email: "test@test.com",
       password: hashedPassword1,
+      role: 'user',
+      isBanned: false,
       createdAt: new Date()
     });
     
@@ -30,18 +34,18 @@ const initTestUsers = async () => {
       username: "admin",
       email: "admin@test.com",
       password: hashedPassword2,
+      role: 'admin',
+      isBanned: false,
       createdAt: new Date()
     });
     
     console.log("✅ Тестовые пользователи созданы:");
-    console.log("   testuser: test@test.com / TestPass123!");
-    console.log("   admin: admin@test.com / AdminPass123!");
+    console.log("   user: test@test.com / TestPass123! (role: user)");
+    console.log("   admin: admin@test.com / AdminPass123! (role: admin)");
   }
 };
 
 initTestUsers();
-
-(global as any).usersForPosts = users;
 
 const updateGlobalUsers = () => {
   (global as any).usersForPosts = users;
@@ -50,8 +54,6 @@ const updateGlobalUsers = () => {
 const router = express.Router();
 
 router.post("/register", async (req: Request, res: Response) => {
-  console.log("📝 Register request:", req.body);
-  
   try {
     const { username, email, password } = req.body;
     
@@ -71,15 +73,16 @@ router.post("/register", async (req: Request, res: Response) => {
       username,
       email,
       password: hashedPassword,
+      role: 'user',
+      isBanned: false,
       createdAt: new Date()
     };
     
     users.push(newUser);
     updateGlobalUsers();
-    console.log("✅ User created:", { id: newUser.id, email: newUser.email });
     
     const token = jwt.sign(
-      { userId: newUser.id, email: newUser.email },
+      { userId: newUser.id, email: newUser.email, role: newUser.role, isBanned: newUser.isBanned },
       process.env.JWT_SECRET || "default_secret_key",
       { expiresIn: '7d' }
     );
@@ -93,14 +96,11 @@ router.post("/register", async (req: Request, res: Response) => {
     const { password: _, ...userWithoutPassword } = newUser;
     res.status(200).json({ user: userWithoutPassword, token });
   } catch (e) {
-    console.error("❌ Register error:", e);
     res.status(400).json({ error: e instanceof Error ? e.message : "Ошибка регистрации" });
   }
 });
 
 router.post("/login", async (req: Request, res: Response) => {
-  console.log("🔐 Login request:", req.body);
-  
   try {
     const { email, password } = req.body;
     
@@ -110,21 +110,20 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const user = users.find(u => u.email === email);
     if (!user) {
-      console.log("❌ User not found:", email);
       return res.status(400).json({ error: "Пользователь не найден" });
     }
 
-    console.log("📝 User found:", { id: user.id, email: user.email });
-    
+    if (user.isBanned) {
+      return res.status(403).json({ error: "Ваш аккаунт заблокирован. Обратитесь к администратору." });
+    }
+
     const isValid = await bcrypt.compare(password, user.password);
-    console.log("✅ Password valid:", isValid);
-    
     if (!isValid) {
       return res.status(400).json({ error: "Неверный пароль" });
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role: user.role, isBanned: user.isBanned },
       process.env.JWT_SECRET || "default_secret_key",
       { expiresIn: '7d' }
     );
@@ -135,12 +134,9 @@ router.post("/login", async (req: Request, res: Response) => {
       sameSite: 'lax'
     });
     
-    console.log("✅ Login successful for:", email);
-    
     const { password: _, ...userWithoutPassword } = user;
     res.status(200).json({ user: userWithoutPassword, token });
   } catch (e) {
-    console.error("❌ Login error:", e);
     res.status(400).json({ error: e instanceof Error ? e.message : "Ошибка входа" });
   }
 });
@@ -156,6 +152,8 @@ router.get("/me", async (req: Request, res: Response) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
       userId: number;
       email: string;
+      role: string;
+      isBanned: boolean;
     };
     
     const user = users.find(u => u.id === decoded.userId);
@@ -186,6 +184,7 @@ router.put("/profile", async (req: Request, res: Response) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
       userId: number;
       email: string;
+      role: string;
     };
     
     const userIndex = users.findIndex(u => u.id === decoded.userId);
@@ -221,8 +220,165 @@ router.put("/profile", async (req: Request, res: Response) => {
     const { password: _, ...userWithoutPassword } = users[userIndex];
     res.json({ user: userWithoutPassword, message: "Профиль успешно обновлен" });
   } catch (error) {
-    console.error("❌ Profile update error:", error);
     res.status(500).json({ error: "Ошибка обновления профиля" });
+  }
+});
+
+router.get("/users", async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(401).json({ error: "Не авторизован" });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
+      userId: number;
+      role: string;
+    };
+    
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ error: "Доступ запрещен" });
+    }
+    
+    const usersList = users.map(u => {
+      const { password, ...userWithoutPassword } = u;
+      return userWithoutPassword;
+    });
+    
+    res.json({ users: usersList });
+  } catch (error) {
+    res.status(500).json({ error: "Ошибка получения пользователей" });
+  }
+});
+
+router.put("/users/:id/role", async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(401).json({ error: "Не авторизован" });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
+      userId: number;
+      role: string;
+    };
+    
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ error: "Доступ запрещен" });
+    }
+    
+    const userId = parseInt(req.params.id as string);
+    const { role } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Неверный ID пользователя" });
+    }
+    
+    if (!['admin', 'moderator', 'user'].includes(role)) {
+      return res.status(400).json({ error: "Некорректная роль" });
+    }
+    
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+    
+    if (users[userIndex].id === decoded.userId) {
+      return res.status(400).json({ error: "Нельзя изменить свою роль" });
+    }
+    
+    users[userIndex].role = role as 'admin' | 'moderator' | 'user';
+    updateGlobalUsers();
+    
+    const { password, ...userWithoutPassword } = users[userIndex];
+    res.json({ message: "Роль успешно обновлена", user: userWithoutPassword });
+  } catch (error) {
+    console.error("Ошибка обновления роли:", error);
+    res.status(500).json({ error: "Ошибка обновления роли" });
+  }
+});
+
+router.put("/users/:id/ban", async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(401).json({ error: "Не авторизован" });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
+      userId: number;
+      role: string;
+    };
+    
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ error: "Доступ запрещен" });
+    }
+    
+    const userId = parseInt(req.params.id as string);
+    const { isBanned } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Неверный ID пользователя" });
+    }
+    
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+    
+    if (users[userIndex].id === decoded.userId) {
+      return res.status(400).json({ error: "Нельзя забанить самого себя" });
+    }
+    
+    users[userIndex].isBanned = isBanned;
+    updateGlobalUsers();
+    
+    const { password, ...userWithoutPassword } = users[userIndex];
+    res.json({ message: isBanned ? "Пользователь забанен" : "Пользователь разбанен", user: userWithoutPassword });
+  } catch (error) {
+    console.error("Ошибка бана пользователя:", error);
+    res.status(500).json({ error: "Ошибка изменения статуса пользователя" });
+  }
+});
+
+router.delete("/users/:id", async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(401).json({ error: "Не авторизован" });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret_key") as {
+      userId: number;
+      role: string;
+    };
+    
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ error: "Доступ запрещен" });
+    }
+    
+    const userId = parseInt(req.params.id as string);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Неверный ID пользователя" });
+    }
+    
+    if (userId === decoded.userId) {
+      return res.status(400).json({ error: "Нельзя удалить самого себя" });
+    }
+    
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+    
+    users.splice(userIndex, 1);
+    updateGlobalUsers();
+    
+    res.json({ message: "Пользователь удален" });
+  } catch (error) {
+    console.error("Ошибка удаления пользователя:", error);
+    res.status(500).json({ error: "Ошибка удаления пользователя" });
   }
 });
 
