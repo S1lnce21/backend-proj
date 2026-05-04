@@ -433,3 +433,49 @@ body.dark .chat-empty p {
 body.dark .chat-status {
   color: #ddd;
 }
+
+.message-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.message-status {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.message-status.sent {
+  color: #95a5a6;
+}
+
+.message-status.delivered {
+  color: #667eea;
+}
+
+.message-status.read {
+  color: #27ae60;
+}
+
+body.dark .message-status.sent {
+  color: #7f8c8d;
+}
+
+body.dark .message-status.delivered {
+  color: #9b59b6;
+}
+
+body.dark .message-status.read {
+  color: #2ecc71;
+}
+
+.message-user .message-footer {
+  justify-content: flex-end;
+}
+
+.message-partner .message-footer {
+  justify-content: flex-start;
+}

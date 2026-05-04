@@ -88,6 +88,18 @@ const SupportButton = ({ user }) => {
           setMessages([]);
         }
       });
+
+      socket.on('message-delivered', ({ messageId }) => {
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId ? { ...msg, delivered: true } : msg
+        ));
+      });
+
+      socket.on('message-read', ({ messageId }) => {
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId ? { ...msg, isRead: true, delivered: true } : msg
+        ));
+      });
     }
     
     return () => {
@@ -96,6 +108,8 @@ const SupportButton = ({ user }) => {
         socket.off('ticket_message');
         socket.off('ticket_updated');
         socket.off('ticket_deleted');
+        socket.off('message-delivered');
+        socket.off('message-read');
       }
     };
   }, [user?.id]);
@@ -109,6 +123,19 @@ const SupportButton = ({ user }) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const markMessageAsRead = (messageId) => {
+    if (socket && selectedTicket) {
+      socket.emit('message-read', { messageId, roomId: `ticket_${selectedTicket.id}` });
+    }
+  };
+
+  useEffect(() => {
+    const lastMessage = messages.filter(m => m.userId !== user?.id).pop();
+    if (lastMessage && !lastMessage.isRead) {
+      markMessageAsRead(lastMessage.id);
+    }
+  }, [messages, user?.id]);
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -144,11 +171,32 @@ const SupportButton = ({ user }) => {
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedTicket) return;
     setError('');
+    const tempId = Date.now();
+    const tempMessage = {
+      id: tempId,
+      ticketId: selectedTicket.id,
+      userId: user.id,
+      username: user.username,
+      message: newMessage,
+      isStaff: isStaff,
+      createdAt: new Date(),
+      isRead: false,
+      delivered: false
+    };
+    setMessages(prev => [...prev, tempMessage]);
+    
     try {
       await ticketsAPI.sendMessage(selectedTicket.id, { message: newMessage });
       setNewMessage('');
+      
+      setTimeout(() => {
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempId ? { ...msg, delivered: true } : msg
+        ));
+      }, 500);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка отправки сообщения');
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
     }
   };
 
@@ -192,6 +240,26 @@ const SupportButton = ({ user }) => {
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка архивации заявки');
+    }
+  };
+
+  const renderMessageStatus = (msg) => {
+    if (msg.userId === user?.id) {
+      if (msg.isRead) {
+        return <span className="ticket-message-status read">✓✓</span>;
+      }
+      if (msg.delivered) {
+        return <span className="ticket-message-status delivered">✓✓</span>;
+      }
+      return <span className="ticket-message-status sent">✓</span>;
+    } else {
+      if (msg.isRead) {
+        return <span className="ticket-message-status read">✓✓</span>;
+      }
+      if (msg.delivered) {
+        return <span className="ticket-message-status delivered">✓✓</span>;
+      }
+      return <span className="ticket-message-status delivered">✓✓</span>;
     }
   };
 
@@ -297,14 +365,17 @@ const SupportButton = ({ user }) => {
                   </div>
                   <div className="support-chat-messages">
                     {messages.map((msg, idx) => (
-                      <div key={idx} className={`support-msg ${msg.userId === user?.id ? 'user-msg' : 'staff-msg'}`}>
-                        <div className="msg-author">
+                      <div key={idx} className={`ticket-message ${msg.userId === user?.id ? 'ticket-message-user' : 'ticket-message-staff'}`}>
+                        <div className="ticket-message-author">
                           {msg.username} 
                           {msg.isStaff && <span className="staff-label">Сотрудник</span>}
                           {msg.userId === user?.id && <span className="staff-label">Вы</span>}
                         </div>
-                        <div className="msg-text">{msg.message}</div>
-                        <div className="msg-time">{new Date(msg.createdAt).toLocaleString()}</div>
+                        <div className="ticket-message-text">{msg.message}</div>
+                        <div className="ticket-message-footer">
+                          <div className="ticket-message-time">{new Date(msg.createdAt).toLocaleString()}</div>
+                          {renderMessageStatus(msg)}
+                        </div>
                       </div>
                     ))}
                     <div ref={messagesEndRef} />

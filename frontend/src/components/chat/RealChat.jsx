@@ -26,6 +26,22 @@ const RealChat = ({ user }) => {
     scrollToBottom();
   }, [messages]);
 
+  const markMessageAsRead = (messageId) => {
+    if (socket && roomId) {
+      socket.emit('message-read', { messageId, roomId });
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, isRead: true } : msg
+      ));
+    }
+  };
+
+  useEffect(() => {
+    const lastMessage = messages.filter(m => m.userId !== user?.id).pop();
+    if (lastMessage && !lastMessage.isRead) {
+      markMessageAsRead(lastMessage.id);
+    }
+  }, [messages, user?.id]);
+
   const resetChatState = () => {
     if (socket) {
       socket.disconnect();
@@ -81,8 +97,8 @@ const RealChat = ({ user }) => {
       toast.innerHTML = `
         <div class="toast-icon">👥</div>
         <div class="toast-content">
-          <div class="toast-title">${t('newPartner')}</div>
-          <div class="toast-message">${data.partnerName} ${t('partnerJoined')}</div>
+          <div class="toast-title">Новый собеседник!</div>
+          <div class="toast-message">${data.partnerName} присоединился к чату</div>
         </div>
         <button class="toast-close">×</button>
       `;
@@ -106,15 +122,27 @@ const RealChat = ({ user }) => {
     newSocket.on('new-message', (message) => {
       setMessages(prev => {
         if (prev.some(m => m.id === message.id)) return prev;
-        return [...prev, message];
+        return [...prev, { ...message, isRead: false }];
       });
+    });
+
+    newSocket.on('message-delivered', ({ messageId }) => {
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, delivered: true } : msg
+      ));
+    });
+
+    newSocket.on('message-read', ({ messageId }) => {
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, isRead: true, delivered: true } : msg
+      ));
     });
 
     newSocket.on('partner-left', () => {
       setMessages(prev => [...prev, {
         id: Date.now(),
-        message: t('partnerLeft'),
-        username: 'System',
+        message: 'Собеседник покинул чат. Нажмите кнопку для нового поиска.',
+        username: 'Система',
         timestamp: new Date(),
         userId: 0
       }]);
@@ -130,7 +158,7 @@ const RealChat = ({ user }) => {
     });
 
     newSocket.on('connect_error', (err) => {
-      setError(`${t('errorLoading')}: ${err.message}`);
+      setError(`Ошибка: ${err.message}`);
       setIsLooking(false);
       setIsWaiting(false);
       setIsConnecting(false);
@@ -140,7 +168,7 @@ const RealChat = ({ user }) => {
 
     newSocket.on('disconnect', (reason) => {
       if (reason === 'io server disconnect') {
-        setError(t('errorLoading'));
+        setError('Сервер отключился');
         resetChatState();
       }
     });
@@ -152,8 +180,26 @@ const RealChat = ({ user }) => {
     if (!socket || !roomId || !inputMessage.trim() || !inChat) {
       return;
     }
+    const tempId = Date.now();
+    const tempMessage = {
+      id: tempId,
+      roomId,
+      userId: user.id,
+      username: user.username,
+      message: inputMessage,
+      timestamp: new Date(),
+      isRead: false,
+      delivered: false
+    };
+    setMessages(prev => [...prev, tempMessage]);
     socket.emit('send-message', { roomId, message: inputMessage });
     setInputMessage('');
+    
+    setTimeout(() => {
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId ? { ...msg, delivered: true } : msg
+      ));
+    }, 500);
   };
 
   const leaveChat = () => {
@@ -177,6 +223,18 @@ const RealChat = ({ user }) => {
     if (isLooking) return t('searching');
     if (isWaiting) return t('waiting');
     return t('notConnected');
+  };
+
+  const renderMessageStatus = (msg) => {
+    if (msg.userId !== user?.id) return null;
+    
+    if (msg.isRead) {
+      return <span className="message-status read">✓✓</span>;
+    }
+    if (msg.delivered) {
+      return <span className="message-status delivered">✓✓</span>;
+    }
+    return <span className="message-status sent">✓</span>;
   };
 
   const showMainButton = !inChat && !isLooking && !isWaiting && !isConnecting;
@@ -207,9 +265,16 @@ const RealChat = ({ user }) => {
             {messages.map((msg, idx) => (
               <div key={msg.id || idx} className={`message ${msg.userId === user?.id ? 'message-user' : 'message-partner'}`}>
                 <div className="message-bubble">
-                  {msg.username !== 'System' && msg.userId !== user?.id && <div className="message-sender">{msg.username}</div>}
+                  {msg.username !== 'Система' && msg.userId !== user?.id && (
+                    <div className="message-sender">{msg.username}</div>
+                  )}
                   <div className="message-text">{msg.message}</div>
-                  <div className="message-time">{new Date(msg.timestamp).toLocaleTimeString()}</div>
+                  <div className="message-footer">
+                    <div className="message-time">
+                      {new Date(msg.timestamp).toLocaleTimeString()}
+                    </div>
+                    {renderMessageStatus(msg)}
+                  </div>
                 </div>
               </div>
             ))}
